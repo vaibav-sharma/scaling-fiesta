@@ -1,0 +1,106 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Button } from '@/src/components/ui/button';
+import { Input } from '@/src/components/ui/input';
+import { Label } from '@/src/components/ui/label';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from '@/src/components/ui/card';
+
+export default function Page() {   // 👈 THIS MUST BE DEFAULT
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (email.trim() && password.trim()) {
+      localStorage.setItem('loggedIn', 'true');
+      router.push('/');
+    } else {
+      alert('Please enter both email and password');
+    }
+  };
+
+  const handleGuest = () => {
+    localStorage.setItem('loggedIn', 'true');
+    router.push('/');
+  };
+
+  return (
+    <motion.div<HTMLDivElement>
+    className="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary via-primary/95 to-primary/90"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    >
+      <Card className="w-full max-w-sm border border-sand/20 bg-primary/60 backdrop-blur-xl shadow-2xl">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-semibold text-softwhite">
+            Developer Showcase
+          </CardTitle>
+          <p className="text-sm text-sand">
+            Building Intelligent Apps for the Future
+          </p>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-sand">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-primary/40 border-sand/20 text-softwhite placeholder:text-sand/70"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password" className="text-sand">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-primary/40 border-sand/20 text-softwhite placeholder:text-sand/70"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-accent/20 hover:bg-accent/40 border border-accent/40 text-accent transition-colors"
+            >
+              Sign In
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="flex flex-col space-y-3">
+          <Button
+            variant="ghost"
+            onClick={handleGuest}
+            className="w-full border border-sand/20 text-sand hover:bg-primary/20 transition-colors"
+          >
+            Continue as Guest
+          </Button>
+        </CardFooter>
+      </Card>
+    </motion.div>
+  );
+}
