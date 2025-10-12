@@ -16,84 +16,29 @@ import {
 import { apiRequest } from '@/src/utils/apiClient'
 import Image from 'next/image'
 import { Loader2 } from "lucide-react"
+import { useAuthStore } from '@/src/store/authStore'
 
 
 export default function Page() {
     const router = useRouter()
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [warming, setWarming] = useState(false)
-    const [serverStatus, setServerStatus] = useState(false)
+    // const [email, setEmail] = useState('')
+    // const [password, setPassword] = useState('')
+    // const [loading, setLoading] = useState(false)
+    // const [warming, setWarming] = useState(false)
+    // const [serverStatus, setServerStatus] = useState(false)
+    const {
+        email,
+        password,
+        loading,
+        warming,
+        serverStatus,
+        setEmail,
+        setPassword,
+        login,
+        warmUp,
+        logout,
+    } = useAuthStore()
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (email.trim() && password.trim()) {
-            setLoading(true)
-
-            // POST example
-            const result = await apiRequest({
-                method: 'POST',
-                url: 'https://backend-51tb.onrender.com/token',
-                operation: 'LoginUser',
-                payload: { username: email.trim(), password: password.trim() },
-                payloadType: "form",
-                retry: true,
-            });
-
-            if (result.success) {
-                setLoading(false)
-
-                console.log('Login success:', result.data);
-                localStorage.setItem('loggedIn', 'true')
-                router.push('/')
-            }
-            else {
-                console.error('Login failed:', result.error);
-                setLoading(false)
-
-
-            }
-            localStorage.setItem('loggedIn', 'true')
-            router.push('/')
-        } else {
-            alert('Please enter both email and password')
-        }
-    }
-
-    const handleServerWarmUp = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (email.trim() && password.trim()) {
-            setWarming(true)
-
-            // POST example
-            const result = await apiRequest({
-                method: 'GET',
-                url: 'https://backend-51tb.onrender.com/health',
-                operation: 'WarmUp',
-                // payload: { username: email.trim(), password: password.trim() },
-                payloadType: "json",
-                retry: true,
-            });
-
-            if (result.success) {
-                setWarming(false)
-                setServerStatus(true)
-
-                console.log('Login success:', result.data);
-                // localStorage.setItem('loggedIn', 'true')
-                // router.push('/')
-            }
-            else {
-                console.error('Login failed:', result.error);
-                setWarming(false)
-            }
-            // localStorage.setItem('loggedIn', 'true')
-            // router.push('/')
-        } else {
-            alert('Please enter both email and password')
-        }
-    }
 
     const handleGuest = () => {
         localStorage.setItem('loggedIn', 'true')
@@ -101,43 +46,18 @@ export default function Page() {
     }
 
     return (
-        <div className="container relative flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-            {/* Left side with background and text */}
-            <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex overflow-hidden">
-                {/* Background image */}
-                <Image
-                    src="/homepage.svg"           // place homepage.svg in your /public folder
-                    alt="Background illustration"
-                    fill                          // makes the image cover the entire parent
-                    priority                      // preload for faster rendering
-                    className="object-cover object-center z-0"
-                />
+        // <div className="min-h-screen grid lg:grid-cols-2">
+        <div className="h-screen grid lg:grid-cols-2 overflow-hidden">
+            {/* Left side */}
+            <LeftSide />
 
-                {/* Optional color overlay */}
-                <div className="absolute inset-0 bg-primary/70 z-10" />
-
-                {/* Foreground content */}
-                <div className="relative z-20 flex items-center text-lg font-medium">
-                    ⚡ Dev Showcase
-                </div>
-
-                <div className="relative z-20 mt-auto">
-                    <blockquote className="space-y-2">
-                        <p className="text-lg">
-                            “Building modern, modular interfaces with Next.js and shadcn/ui.”
-                        </p>
-                        <footer className="text-sm">– Your Name</footer>
-                    </blockquote>
-                </div>
-            </div>
-
-            {/* Right side: auth card */}
-            <div className="lg:p-8 flex items-center justify-center">
-                <div className="mx-auto flex w-[350px] flex-col justify-center space-y-6">
+            {/* Right side (form) */}
+            <div className="flex flex-col items-center justify-center p-6 sm:p-8 md:p-12">
+                <div className="w-full max-w-sm space-y-6">
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-2xl font-semibold tracking-tight">Login</h1>
                         <p className="text-sm text-muted-foreground">
-                            Enter your email below to sign in to your account
+                            Enter your username below to sign in to your account
                         </p>
                     </div>
 
@@ -147,13 +67,19 @@ export default function Page() {
                             <CardDescription>to continue to your dashboard</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={handleLogin} className="grid gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email</Label>
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault()
+                                    login()     // call Zustand action directly
+                                }}
+                                className="grid gap-4"
+                            >                                
+                            <div className="grid gap-2">
+                                    <Label htmlFor="email">Username</Label>
                                     <Input
                                         id="id"
                                         type="text"
-                                        placeholder="user1"
+                                        placeholder="username"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
@@ -170,13 +96,11 @@ export default function Page() {
                                         required
                                     />
                                 </div>
-                                {/* <Button type="submit" className="w-full">
-                                    Sign In
-                                </Button> */}
                                 <Button
                                     type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-accent/20 hover:bg-accent/40 border border-accent/40 text-accent transition-colors flex items-center justify-center"
+                                    disabled={loading || warming}
+                                    onClick={login}
+                                    className="w-full bg-accent/20 hover:bg-accent/40 border border-accent/40 text-accent flex items-center justify-center"
                                 >
                                     {loading ? (
                                         <>
@@ -194,33 +118,32 @@ export default function Page() {
                                     <span className="w-full border-t" />
                                 </div> */}
                                 <div className="relative mt-4">
-                                {/* <div className="absolute inset-0 flex items-center">
+                                    {/* <div className="absolute inset-0 flex items-center">
                                     <span className="w-full border-t" />
                                 </div> */}
-                                <div className="mt-auto">
-                                    <Button
-                                        // type="submit"
-                                        onClick={handleServerWarmUp}
-                                        disabled={loading || warming}
-                                        className="w-full bg-accent/20 hover:bg-accent/40 border border-accent/40 text-accent transition-colors flex items-center justify-center"
-                                    >
-                                        {warming ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Server starting...
-                                            </>
-                                        ) : (
-                                            serverStatus ? "Server Up" : "Warm Up Server"
-                                        )}
-                                    </Button>
-                                </div>
+                                    <div className="mt-auto">
+                                        <Button
+                                            onClick={warmUp}
+                                            disabled={warming || loading}
+                                            className="w-full bg-accent/20 hover:bg-accent/40 border border-accent/40 text-accent flex items-center justify-center"
+                                        >
+                                            {warming ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Server starting...
+                                                </>
+                                            ) : (
+                                                serverStatus ? "Server Up" : "Warm Up Server"
+                                            )}
+                                        </Button>
+                                    </div>
 
-                                {/* <div className="relative flex justify-center text-xs uppercase">
+                                    {/* <div className="relative flex justify-center text-xs uppercase">
                                     <span className="bg-background px-2 text-muted-foreground pt-4">
                                         Or continue with
                                     </span>
                                 </div> */}
-                            </div>
+                                </div>
                                 <div className="relative flex justify-center text-xs uppercase">
                                     <span className="bg-background px-2 text-muted-foreground">
                                         Or continue with
@@ -279,4 +202,30 @@ export default function Page() {
             </div>
         </div>
     )
+}
+
+const LeftSide = () => {
+    return <div className="relative hidden lg:flex flex-col bg-muted text-white dark:border-r overflow-hidden">
+        <Image
+            src="/homepage.svg"
+            alt="Background illustration"
+            fill
+            priority
+            className="object-contain object-center lg:object-cover z-0"
+        />
+
+        {/* Optional overlay for tint */}
+        <div className="absolute inset-0 bg-primary/70 z-10" />
+
+        {/* Foreground content */}
+        <div className="relative z-20 flex flex-col justify-between h-full p-10">
+            <div className="flex items-center text-lg font-medium">⚡ Dev Showcase</div>
+            <blockquote className="space-y-2">
+                <p className="text-lg">
+                    “Building modern, modular interfaces with Next.js and shadcn/ui.”
+                </p>
+                <footer className="text-sm">– Your Name</footer>
+            </blockquote>
+        </div>
+    </div>
 }

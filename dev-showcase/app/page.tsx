@@ -1,7 +1,6 @@
-// import { Button } from '@/src/components/ui/button';
-import { Button } from '@/src/components/ui/button';
-import LogoutButton from '@/src/components/ui/logout';
-import Link from 'next/link';
+import { Button } from '@/src/components/ui/button'
+import LogoutButton from '@/src/components/ui/logout'
+import Link from 'next/link'
 
 export default function Home() {
   return (
@@ -10,12 +9,15 @@ export default function Home() {
       <p className="text-sand max-w-lg">
         Modular playground demonstrating components and systems — API fetchers, sockets, dashboards, and more.
       </p>
-     <div className="flex space-x-4">
-        <Link href="/showcases">
-          <Button>Explore Components</Button>
+
+      <div className="flex space-x-4">
+        <Link href="/showcase" passHref>
+          <Button asChild>
+            <span>Explore Components</span>
+          </Button>
         </Link>
         <LogoutButton />
       </div>
     </div>
-  );
+  )
 }

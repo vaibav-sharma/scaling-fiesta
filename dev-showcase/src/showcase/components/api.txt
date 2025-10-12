@@ -1,0 +1,48 @@
+'use client'
+
+import { useApiFetcher } from '../hooks/useApiFetcher'
+import { Button } from '@/src/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card'
+import { Loader2 } from 'lucide-react'
+
+export function ApiFetcher() {
+  const { data, loading, error, fetchData } = useApiFetcher()
+
+  return (
+    <Card className="w-full max-w-xl mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>API Data Fetcher</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-4">
+          <Button
+            onClick={fetchData}
+            disabled={loading}
+            className="w-fit flex items-center"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Fetching...
+              </>
+            ) : (
+              'Fetch Data'
+            )}
+          </Button>
+
+          {error && (
+            <p className="text-red-500 text-sm bg-red-100 p-2 rounded-md">
+              {error}
+            </p>
+          )}
+
+          {data && (
+            <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+              {JSON.stringify(data, null, 2)}
+            </pre>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

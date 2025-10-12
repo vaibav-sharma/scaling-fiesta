@@ -20,11 +20,10 @@ interface ApiRequestOptions<T = any> {
   payloadType?: PayloadType
 }
 
-interface ApiResponse<T = any> {
+export interface ApiResponse<T = any> {
   success: boolean
   data?: T
-  error?: string
-  status?: number
+  error?: string | { message: string }
 }
 
 /**
@@ -35,84 +34,51 @@ const encodeForm = (data: Record<string, any> = {}): string =>
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join('&')
 
-export async function apiRequest<T = any>(
-  options: ApiRequestOptions
-): Promise<ApiResponse<T>> {
-  const {
-    method,
-    url,
-    operation,
-    payload,
-    headers = {},
-    retry = false,
-    maxRetries = 3,
-    payloadType = 'json',
-  } = options
+export async function apiRequest<T = any>({
+  method,
+  url,
+  operation,
+  payload,
+  payloadType = 'json',
+  retry = false,
+}: {
+  method: 'GET' | 'POST'
+  url: string
+  operation: string
+  payload?: any
+  payloadType?: 'json' | 'form'
+  retry?: boolean
+}): Promise<ApiResponse<T>> {
+  try {
+    const headers =
+      payloadType === 'json'
+        ? { 'Content-Type': 'application/json' }
+        : { 'Content-Type': 'application/x-www-form-urlencoded' }
 
-  let attempt = 0
-  let backoffDelay = 500 // ms
+    const body =
+      method === 'POST'
+        ? payloadType === 'json'
+          ? JSON.stringify(payload)
+          : new URLSearchParams(payload).toString()
+        : undefined
 
-  const log = (msg: string) =>
-    console.info(`[API][${operation ?? 'UnknownOp'}] ${msg}`)
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    })
 
-  const fetchAttempt = async (): Promise<ApiResponse<T>> => {
-    try {
-      let body: BodyInit | undefined
-      const isGet = method === 'GET'
-
-      const contentType =
-        payloadType === 'form'
-          ? 'application/x-www-form-urlencoded'
-          : 'application/json'
-
-      if (!isGet && payload) {
-        body =
-          payloadType === 'form'
-            ? encodeForm(payload as Record<string, any>)
-            : JSON.stringify(payload)
-      }
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': contentType,
-          ...headers,
-        },
-        body: isGet ? undefined : body,
-      })
-
-      const text = await response.text()
-      let data: any
-      try {
-        data = text ? JSON.parse(text) : null
-      } catch {
-        data = text
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${data?.message ?? 'Error'}`)
-      }
-
-      log(`✅ Success (Status: ${response.status})`)
-      return { success: true, data, status: response.status }
-    } catch (err: any) {
-      log(`❌ Failed attempt ${attempt + 1}: ${err.message}`)
-
-      if (retry && attempt < maxRetries) {
-        attempt++
-        log(`Retrying in ${backoffDelay}ms...`)
-        await new Promise((res) => setTimeout(res, backoffDelay))
-        backoffDelay *= 2
-        return fetchAttempt()
-      }
-
-      return {
-        success: false,
-        error: err.message,
-        status: err.status ?? 500,
-      }
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`)
     }
-  }
 
-  return fetchAttempt()
+    const data = await response.json()
+    return { success: true, data }
+  } catch (error: any) {
+    const errMessage =
+      typeof error === 'string'
+        ? error
+        : error?.message || 'Unexpected error occurred'
+    return { success: false, error: errMessage }
+  }
 }

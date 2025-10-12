@@ -26,7 +26,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeToggle /> {/* 👈 place it in your header */}
         </header>
 
-        <main className="min-h-screen bg-primary text-softwhite">{children}</main>
+        <main className="h-[calc(100vh-69px)] bg-primary text-softwhite overflow-hidden">
+          {children}
+        </main>
       </body>
     </html>
   );
