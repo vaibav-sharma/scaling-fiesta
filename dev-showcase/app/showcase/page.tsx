@@ -1,32 +1,42 @@
-'use client'
+// 'use client'
 
-import Sidebar from '@/src/showcase/components/Sidebar'
-import ShowcaseCanvas from '@/src/showcase/components/ShowcaseCanvas'
 import CommandPalette from '@/src/showcase/components/CommandPalette'
+import AnimatedCanvasWrapper from '@/src/showcase/components/AnimatedShowcaseWrapper'
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+  SidebarInset,
+  SidebarTrigger,
+  useSidebar,
+} from '@/src/components/ui/sidebar'
+import { AppSidebar } from '@/src/showcase/components/Sidebar'
 
-export default function ShowcasePage() {
+function FloatingSidebarTrigger() {
+  const { state } = useSidebar()
+  if (state === 'expanded') return null
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <ShowcaseCanvas />
-      <CommandPalette />
+    <div className="absolute top-4 left-4 z-20">
+      <SidebarTrigger />
     </div>
   )
 }
 
-// 'use client'
+export default function ShowcasePage() {
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
+          <AppSidebar />
+        </SidebarContent>
+      </Sidebar>
 
-// import { ApiFetcher } from '@/src/showcase/components/ApiFetcher'
+      <FloatingSidebarTrigger />
 
-// export default function ShowcasePage() {
-//   return (
-//     <div className="min-h-screen p-8 flex flex-col items-center justify-start bg-background">
-//       <h1 className="text-3xl font-semibold mb-4">Developer Showcase</h1>
-//       <p className="text-muted-foreground mb-8">
-//         Explore live components showcasing API fetches and UI logic.
-//       </p>
-
-//       <ApiFetcher />
-//     </div>
-//   )
-// }
+      <SidebarInset>
+        <AnimatedCanvasWrapper />
+        <CommandPalette />
+      </SidebarInset>
+    </SidebarProvider>
+  )
+}

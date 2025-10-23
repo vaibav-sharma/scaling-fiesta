@@ -13,7 +13,7 @@ interface AuthState {
   warmUp: () => Promise<void>
   logout: () => void
 }
-
+export const url = "https://backend-51tb.onrender.com"
 export const useAuthStore = create<AuthState>((set, get) => ({
   email: '',
   password: '',
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const result = await apiRequest({
       method: 'POST',
-      url: 'https://backend-51tb.onrender.com/token',
+      url: `${url}/token`,
       operation: 'LoginUser',
       payload: { username: email.trim(), password: password.trim() },
       payloadType: 'form',
@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ warming: true })
     const result = await apiRequest({
       method: 'GET',
-      url: 'https://backend-51tb.onrender.com/health',
+      url: `${url}/health`,
       operation: 'WarmUp',
       payloadType: 'json',
       retry: true,

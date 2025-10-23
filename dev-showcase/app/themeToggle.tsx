@@ -1,4 +1,4 @@
-'use client';
+// 'use client';
 
 import { useThemeStore } from '@/src/store/themeStore';
 import { Button } from '@/src/components/ui/button';

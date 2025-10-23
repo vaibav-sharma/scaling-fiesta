@@ -9,6 +9,7 @@ const items = [
   { id: 'socket-viewer', label: 'Socket Playground' },
   { id: 'data-table', label: 'Data Table' },
   { id: 'retry-tester', label: 'Retry Tester' },
+  { id: 'chat-ui', label: 'Chat UI' },
 ]
 
 export default function CommandPalette() {

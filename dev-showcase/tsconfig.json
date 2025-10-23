@@ -22,7 +22,13 @@
     "paths": {
       "@/*": [
         "*"
-      ]
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
+      ],
     },
     "incremental": true,
     "plugins": [
