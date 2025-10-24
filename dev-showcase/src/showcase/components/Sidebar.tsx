@@ -2,7 +2,7 @@
 
 import { SidebarMenuButton, SidebarTrigger, useSidebar } from "@/src/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Menu, Home, HomeIcon, Globe, Unplug, Settings, Table, RefreshCcw, ChartBarIcon, MessageSquareText, Sheet, Palette } from "lucide-react"
+import { Moon, Sun, Menu, Home, HomeIcon, Globe, Unplug, Settings, Table, RefreshCcw, ChartBarIcon, MessageSquareText, Sheet, Palette, Soup, GalleryHorizontalEnd } from "lucide-react"
 import ThemeToggle from "@/app/themeToggle"
 import { useShowcaseStore } from "../store/showcaseStore"
 import ThemeColorToggle from "@/app/themeColorToggle"
@@ -14,18 +14,28 @@ export function AppSidebar() {
     { id: 'data-table', label: 'Data Table', icon: Sheet },
     { id: 'retry-tester', label: 'Retry Tester', icon: RefreshCcw },
     { id: 'chat-ui', label: 'Chat UI', icon: MessageSquareText },
+    { id: 'meal-planner', label: 'Meal Planner', icon: Soup },
   ]
   const { activeComponent, setActiveComponent } = useShowcaseStore()
+  const { open, toggleSidebar } = useSidebar()
 
 
   return (
-    <div className="flex flex-col h-full w-64 border-r border-border bg-card text-foreground">
+    // <div className="flex flex-col h-full w-64 border-r border-border bg-card text-foreground">
+    <div
+      className={`flex flex-col h-full border-r border-border bg-card text-foreground transition-all duration-300 ${open ? "w-64" : "w-0"
+        }`}
+    >
       {/* Header section */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div>
-          <h1 className="text-lg font-semibold">Dev Showcase Lab</h1>
-          <p className="text-xs text-muted-foreground">by Vaibav Sharma</p>
+          {/* <GalleryHorizontalEnd /> */}
+          <div>
+            <h1 className="text-lg font-semibold">Dev Showcase Lab</h1>
+            <p className="text-xs text-muted-foreground">by Vaibav Sharma</p>
+          </div>
         </div>
+        {/* <p className="text-xs text-muted-foreground">by Vaibav Sharma</p> */}
         {/* <Button variant="ghost" onClick={toggleSidebar}>
           <Menu className="h-5 w-5" />
         </Button> */}

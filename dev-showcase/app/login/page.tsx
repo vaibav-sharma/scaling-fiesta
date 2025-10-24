@@ -211,7 +211,7 @@ const LeftSide = () => {
             alt="Background illustration"
             fill
             priority
-            className="object-contain object-center lg:object-cover z-0"
+            className="object-contain object-center lg:object-cover z-[200]"
         />
 
         {/* Optional overlay for tint */}

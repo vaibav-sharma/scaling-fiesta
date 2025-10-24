@@ -1,120 +1,126 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-/* @import "tw-animate-css"; */
 
 @custom-variant dark (&:is(.dark *));
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ---------- BASE THEME LAYER ---------- */
 @layer base {
   :root {
-    /* Light mode (default) */
+    /* ===== LIGHT THEME (DEFAULT) ===== */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+
+    /* ✅ Default “Ocean” color scheme */
+    --primary: 200 100% 45%;
+    --accent: 180 90% 35%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
+
+    /* Sidebar palette */
+    --sidebar: hsl(0 0% 98%);
+    --sidebar-foreground: hsl(240 5.3% 26.1%);
+    --sidebar-primary: hsl(240 5.9% 10%);
+    --sidebar-primary-foreground: hsl(0 0% 98%);
+    --sidebar-accent: hsl(240 4.8% 95.9%);
+    --sidebar-accent-foreground: hsl(240 5.9% 10%);
+    --sidebar-border: hsl(220 13% 91%);
+    --sidebar-ring: hsl(217.2 91.2% 59.8%);
   }
 
   .dark {
-    /* Dark mode */
+    /* ===== DARK THEME ===== */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
+
     --primary: 217.2 91.2% 59.8%;
+    --accent: 217.2 32.6% 17.5%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+
+    /* Sidebar (dark) */
+    --sidebar: hsl(240 5.9% 10%);
+    --sidebar-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-primary: hsl(224.3 76.3% 48%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(240 3.7% 15.9%);
+    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-border: hsl(240 3.7% 15.9%);
+    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  }
+
+  /* Apply Tailwind variable utilities globally */
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', ui-sans-serif, system-ui;
+    transition: background-color 0.3s, color 0.3s;
   }
 }
 
-/* Light theme (default) */
-/* :root {
-  --color-primary: #ffffff;
-  --color-accent: #0969da;
-  --color-sand: #57606a;
-  --color-softwhite: #24292f;
-  --color-cyan: #1f6feb;
+/* ---------- COLOR VARIANTS ---------- */
+/* ---------- COLOR VARIANTS ---------- */
+.theme-ocean {
+  --primary: 200 100% 45%;
+  --primary-foreground: 0 0% 100%;
+  /* white text on deep blue */
+  --accent: 180 90% 35%;
+  --accent-foreground: 210 40% 98%;
+  --muted: 200 30% 95%;
+  --muted-foreground: 220 20% 30%;
 }
 
-/* Dark theme */
-/* .dark {
-  --color-primary: #0d1117;
-  --color-accent: #58a6ff;
-  --color-sand: #8b949e;
-  --color-softwhite: #c9d1d9;
-  --color-cyan: #1f6feb; */
-/* } */
-:root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --border: 240 5.9% 90%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  /* ... etc ... */
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-.dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 3.7% 15.9%;
-  --card-foreground: 0 0% 98%;
-  --border: 240 3.9% 20%;
-  --muted: 240 4% 16%;
-  --muted-foreground: 240 5% 64.9%;
-  /* ... etc ... */
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+.theme-sunset {
+  --primary: 20 90% 55%;
+  --primary-foreground: 210 40% 98%;
+  /* off-white text on warm red */
+  --accent: 30 80% 45%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --muted: 25 25% 88%;
+  --muted-foreground: 20 40% 25%;
 }
 
-body {
-  font-family: 'Inter', ui-sans-serif, system-ui;
-  background-color: var(--color-primary);
-  color: var(--color-softwhite);
-  transition: background-color 0.3s, color 0.3s;
+.theme-blue {
+  --primary: 220 90% 55%;
+  --primary-foreground: 0 0% 100%;
+  /* white text */
+  --accent: 240 80% 65%;
+  --accent-foreground: 0 0% 10%;
+  --muted: 225 25% 92%;
+  --muted-foreground: 230 30% 20%;
 }
 
+/* ---------- THEME INLINE TOKENS ---------- */
 @theme inline {
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -124,23 +130,4 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-.theme-ocean {
-  --primary: 200 100% 45%;
-  --accent: 180 90% 35%;
-}
-
-.theme-sunset {
-  --primary: 20 90% 55%;
-  --accent: 30 80% 45%;
 }

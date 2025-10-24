@@ -25,6 +25,9 @@ export default function ThemeColorToggle() {
                     <MenubarItem onClick={() => toggleColorScheme('sunset')}>
                         Theme Sunset <MenubarShortcut>⌘S</MenubarShortcut>
                     </MenubarItem>
+                    <MenubarItem onClick={() => toggleColorScheme('blue')}>
+                        Theme Blue <MenubarShortcut>⌘S</MenubarShortcut>
+                    </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
         </Menubar>

@@ -10,6 +10,7 @@ const items = [
   { id: 'data-table', label: 'Data Table' },
   { id: 'retry-tester', label: 'Retry Tester' },
   { id: 'chat-ui', label: 'Chat UI' },
+  { id: 'meal-planner', label: 'Meal Planner' },
 ]
 
 export default function CommandPalette() {

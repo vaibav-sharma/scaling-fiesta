@@ -14,9 +14,9 @@ import { AppSidebar } from '@/src/showcase/components/Sidebar'
 import { AnimatePresence } from 'framer-motion'
 
 function FloatingSidebarTrigger() {
-  const { state } = useSidebar()
-  if (state === 'expanded') return null
-  return (
+  const { state, open } = useSidebar()
+  if (open) return null
+  else return (
     <div className="absolute top-4 left-4 z-20">
       <SidebarTrigger />
     </div>

@@ -3,6 +3,7 @@
 import { useShowcaseStore } from '@/src/showcase/store/showcaseStore'
 import APIFetcher from './APIFetcher'
 import ChatUI from './ChatUI'
+import MealRecommender from './MealPlanner'
 
 export default function ShowcaseCanvas() {
   const { activeComponent } = useShowcaseStore()
@@ -19,6 +20,8 @@ export default function ShowcaseCanvas() {
         return <div>⏳ Retry Tester demo</div>
       case 'chat-ui':
         return <ChatUI />
+      case 'meal-planner':
+        return <MealRecommender />
       default:
         return (
           <div className="text-muted-foreground text-center text-lg">
@@ -44,7 +47,7 @@ export default function ShowcaseCanvas() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80 z-10" />
 
       {/* Content */}
-      <div className="relative z-20 flex justify-center items-start min-h-full">
+      <div className="relative z-20 flex justify-center items-center min-h-full">
         {renderComponent()}
       </div>
     </div>
