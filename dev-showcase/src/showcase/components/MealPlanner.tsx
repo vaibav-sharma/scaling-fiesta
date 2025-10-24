@@ -102,8 +102,7 @@ export default function MealRecommender() {
       setError('')
       const parsedPayload = suggestionPayload
       const method = 'POST'
-      // const url = `${baseURL}/api/meal-planner`
-      const url = `http://localhost:8000/api/meal-suggestion`
+      const url = `${baseURL}/api/meal-suggestion`
       const payloadType = 'json'
 
       const result = await apiRequest({
