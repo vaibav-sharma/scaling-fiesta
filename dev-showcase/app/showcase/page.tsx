@@ -1,4 +1,4 @@
-// 'use client'
+'use client'
 
 import CommandPalette from '@/src/showcase/components/CommandPalette'
 import AnimatedCanvasWrapper from '@/src/showcase/components/AnimatedShowcaseWrapper'
@@ -11,6 +11,7 @@ import {
   useSidebar,
 } from '@/src/components/ui/sidebar'
 import { AppSidebar } from '@/src/showcase/components/Sidebar'
+import { AnimatePresence } from 'framer-motion'
 
 function FloatingSidebarTrigger() {
   const { state } = useSidebar()
@@ -34,7 +35,9 @@ export default function ShowcasePage() {
       <FloatingSidebarTrigger />
 
       <SidebarInset>
-        <AnimatedCanvasWrapper />
+        <AnimatePresence mode="wait">
+          <AnimatedCanvasWrapper />
+        </AnimatePresence>
         <CommandPalette />
       </SidebarInset>
     </SidebarProvider>
