@@ -6,6 +6,6 @@ interface ShowcaseState {
 }
 
 export const useShowcaseStore = create<ShowcaseState>((set) => ({
-  activeComponent: "api-fetcher",
+  activeComponent: "meal-planner",
   setActiveComponent: (name) => set({ activeComponent: name }),
 }))
