@@ -4,6 +4,7 @@ import { useShowcaseStore } from '@/src/showcase/store/showcaseStore'
 import APIFetcher from './APIFetcher'
 import ChatUI from './ChatUI'
 import MealRecommender from './MealPlanner'
+import MovieRecommender from './MoviePlanner'
 
 export default function ShowcaseCanvas() {
   const { activeComponent } = useShowcaseStore()
@@ -22,6 +23,8 @@ export default function ShowcaseCanvas() {
         return <ChatUI />
       case 'meal-planner':
         return <MealRecommender />
+      case 'movie-planner':
+        return <MovieRecommender />
       default:
         return (
           <div className="text-muted-foreground text-center text-lg">

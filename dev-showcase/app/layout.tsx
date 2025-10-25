@@ -2,7 +2,8 @@ import "./globals.css";
 import React from "react";
 
 export const metadata = {
-  title: "Vaibav Sharma — Building Intelligent Apps for the Future",
+  title: "AI Engine",
+  // title: "Vaibav Sharma — Building Intelligent Apps for the Future",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

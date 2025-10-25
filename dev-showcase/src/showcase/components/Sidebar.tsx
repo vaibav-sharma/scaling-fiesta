@@ -2,12 +2,12 @@
 
 import { SidebarMenuButton, SidebarTrigger, useSidebar } from "@/src/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Menu, Home, HomeIcon, Globe, Unplug, Settings, Table, RefreshCcw, ChartBarIcon, MessageSquareText, Sheet, Palette, Soup, GalleryHorizontalEnd } from "lucide-react"
+import { Moon, Sun, Menu, Home, HomeIcon, Globe, Unplug, Settings, Table, RefreshCcw, ChartBarIcon, MessageSquareText, Sheet, Palette, Soup, GalleryHorizontalEnd, Video } from "lucide-react"
 import ThemeToggle from "@/app/themeToggle"
 import { useShowcaseStore } from "../store/showcaseStore"
 import ThemeColorToggle from "@/app/themeColorToggle"
 
-export function AppSidebar() {
+export default function AppSidebar() {
   const showcaseItems = [
     { id: 'api-fetcher', label: 'API Fetcher', icon: Globe },
     { id: 'socket-viewer', label: 'Socket Playground', icon: Unplug },
@@ -15,6 +15,8 @@ export function AppSidebar() {
     { id: 'retry-tester', label: 'Retry Tester', icon: RefreshCcw },
     { id: 'chat-ui', label: 'Chat UI', icon: MessageSquareText },
     { id: 'meal-planner', label: 'Meal Planner', icon: Soup },
+    { id: 'movie-planner', label: 'Movie Planner', icon: Video },
+
   ]
   const { activeComponent, setActiveComponent } = useShowcaseStore()
   const { open, toggleSidebar } = useSidebar()

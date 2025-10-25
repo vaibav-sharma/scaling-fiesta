@@ -11,6 +11,7 @@ const items = [
   { id: 'retry-tester', label: 'Retry Tester' },
   { id: 'chat-ui', label: 'Chat UI' },
   { id: 'meal-planner', label: 'Meal Planner' },
+  { id: 'movie-planner', label: 'Movie Planner' },
 ]
 
 export default function CommandPalette() {

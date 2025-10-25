@@ -228,7 +228,7 @@ export default function MealRecommender() {
       <div className="max-w-2xl mx-auto space-y-6">
         <Card className="border border-border bg-card shadow-md">
           <CardHeader>
-            <CardTitle><FlipWordsDemo {...({flipWords: ["Breakfast", "Lunch", "Dinner"]} as any)} /></CardTitle>
+            <CardTitle><FlipWordsDemo {...({flipWords: ["Breakfast", "Lunch", "Dinner"], phrase: "What should I eat for"} as any)} /></CardTitle>
             <CardDescription>Quick meal ideas tailored to your preferences</CardDescription>
           </CardHeader>
 
@@ -335,7 +335,7 @@ export default function MealRecommender() {
               </div>
             </div>
 
-            {loading ? <SpinnerBadge /> : <div className="flex justify-between mt-4">
+            {loading ? <SpinnerBadge text="Planning your meal for you"/> : <div className="flex justify-between mt-4">
               <Button onClick={handleGenerate}>
                 <ArrowRight className="w-4 h-4 mr-1" /> Get Suggestion
               </Button>

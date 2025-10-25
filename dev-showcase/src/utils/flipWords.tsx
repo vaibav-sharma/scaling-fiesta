@@ -1,12 +1,12 @@
 import React from "react";
 import { FlipWords } from "@/src/components/ui/flip-words";
 
-export function FlipWordsDemo({ flipWords }: { flipWords: string[] }) {
+export function FlipWordsDemo({ phrase, flipWords }: { phrase: string, flipWords: string[] }) {
     //   const words = ["better", "cute", "beautiful", "modern"];
     const words = [...flipWords]
 
     return (<div>
-        What Should I Eat for<FlipWords words={words} />?
+        {phrase}<FlipWords words={words} />?
     </div>
 
         // <div className="h-[40rem] flex justify-center items-center px-4">
