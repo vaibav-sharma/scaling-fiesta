@@ -84,7 +84,7 @@ export default function MovieRecommender() {
       setLoading(true)
       setError('')
       const method = 'POST'
-      const url = `${baseURL}/api/movie-planner`
+      const url = `${baseURL}/api/movie-suggestion`
       const payloadType = 'json'
 
       const payload = {
@@ -228,8 +228,6 @@ export default function MovieRecommender() {
                 {/* <Film className="h-6 w-6 animate-pulse" /> */}
                 <SpinnerBadge text="Planning your movie for you" />
               </div>
-            ) : error ? (
-              <p className="text-red-500 text-sm">{error}</p>
             ) : (
               <div className="flex justify-between mt-4">
                 <Button onClick={fetchMovieSuggestion}>
@@ -240,6 +238,7 @@ export default function MovieRecommender() {
                 </Button>
               </div>
             )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
           </CardContent>
         </Card>
 

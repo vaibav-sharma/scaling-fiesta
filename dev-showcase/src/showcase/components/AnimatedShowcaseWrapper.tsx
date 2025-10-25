@@ -1,17 +1,15 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { useSidebar } from '@/src/components/ui/sidebar'
-import ShowcaseCanvas from '@/src/showcase/components/ShowcaseCanvas'
+import { AnimatePresence } from 'framer-motion'
 import React from 'react'
 import { MotionDiv } from '@/src/lib/utils'
+import { useSidebar } from '@/src/components/ui/sidebar'
 
-export default function AnimatedCanvasWrapper() {
+export default function AnimatedCanvasWrapper({ children }: { children: React.ReactNode }) {
   const { state } = useSidebar()
   const [sidebarWidth, setSidebarWidth] = React.useState(0)
   const sidebarRef = React.useRef<HTMLDivElement | null>(null)
 
-  // Observe sidebar's actual width
   React.useEffect(() => {
     const sidebarEl = document.querySelector('[data-slot="sidebar-container"]') as HTMLDivElement
     if (!sidebarEl) return
@@ -48,7 +46,7 @@ export default function AnimatedCanvasWrapper() {
           transition={{ duration: 0.25 }}
           className="h-full flex justify-center items-start"
         >
-          <ShowcaseCanvas />
+          {children}
         </MotionDiv>
       </AnimatePresence>
     </MotionDiv>
