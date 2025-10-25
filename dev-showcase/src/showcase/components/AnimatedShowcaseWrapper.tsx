@@ -6,23 +6,23 @@ import { MotionDiv } from '@/src/lib/utils'
 import { useSidebar } from '@/src/components/ui/sidebar'
 
 export default function AnimatedCanvasWrapper({ children }: { children: React.ReactNode }) {
-  const { state } = useSidebar()
+  // const { state } = useSidebar()
   const [sidebarWidth, setSidebarWidth] = React.useState(0)
   const sidebarRef = React.useRef<HTMLDivElement | null>(null)
 
-  React.useEffect(() => {
-    const sidebarEl = document.querySelector('[data-slot="sidebar-container"]') as HTMLDivElement
-    if (!sidebarEl) return
-    sidebarRef.current = sidebarEl
+  // React.useEffect(() => {
+  //   const sidebarEl = document.querySelector('[data-slot="sidebar-container"]') as HTMLDivElement
+  //   if (!sidebarEl) return
+  //   sidebarRef.current = sidebarEl
 
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setSidebarWidth(entry.contentRect.width)
-      }
-    })
-    observer.observe(sidebarEl)
-    return () => observer.disconnect()
-  }, [])
+  //   const observer = new ResizeObserver((entries) => {
+  //     for (const entry of entries) {
+  //       setSidebarWidth(entry.contentRect.width)
+  //     }
+  //   })
+  //   observer.observe(sidebarEl)
+  //   return () => observer.disconnect()
+  // }, [])
 
   return (
     <MotionDiv
@@ -39,7 +39,7 @@ export default function AnimatedCanvasWrapper({ children }: { children: React.Re
     >
       <AnimatePresence mode="wait">
         <MotionDiv
-          key={state}
+          key={"state"}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}

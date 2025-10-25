@@ -1,8 +1,10 @@
+import Link from "next/link";
 import "./globals.css";
 import React from "react";
+import { HomeIcon } from "lucide-react";
 
 export const metadata = {
-  title: "Vaibav",
+  title: "Lazynoons",
   description: 'A collection of interactive developer tools and demos',
   icons: {
     icon: '/favicon.png', // your favicon path in public/
@@ -14,7 +16,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <script
           dangerouslySetInnerHTML={{
@@ -27,6 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
+        <Link href="/" passHref>
+          <HomeIcon />
+        </Link>
         {children}
       </body>
     </html>
