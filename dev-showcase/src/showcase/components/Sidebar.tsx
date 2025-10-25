@@ -3,7 +3,7 @@
 import { SidebarMenuButton, SidebarTrigger, useSidebar } from "@/src/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Moon, Sun, Menu, Home, HomeIcon, Globe, Unplug, Settings, Table, RefreshCcw, ChartBarIcon, MessageSquareText, Sheet, Palette, Soup, GalleryHorizontalEnd, Video } from "lucide-react"
-import ThemeToggle from "@/app/themeToggle"
+import ThemeToggle from "@/src/utils/themeToggle"
 import { useShowcaseStore } from "../store/showcaseStore"
 import ThemeColorToggle from "@/app/themeColorToggle"
 

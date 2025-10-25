@@ -2,6 +2,8 @@ import Link from "next/link";
 import "./globals.css";
 import React from "react";
 import { HomeIcon } from "lucide-react";
+import ThemeToggle from "../src/utils/themeToggle";
+import LayoutHeader from "@/src/utils/LayoutHeader";
 
 export const metadata = {
   title: "Lazynoons",
@@ -29,9 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
-        <Link href="/" passHref>
-          <HomeIcon />
-        </Link>
+        <div>
+          <LayoutHeader />
+        </div>
+
         {children}
       </body>
     </html>

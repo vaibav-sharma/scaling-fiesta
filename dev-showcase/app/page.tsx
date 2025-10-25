@@ -29,7 +29,7 @@ export default function Home() {
         <div className="flex flex-row gap-8 p-8">
           {/* Meal Planner */}
           <Link href="/mealplanner" passHref>
-            <Card className="w-56 h-[28rem] flex flex-col justify-between shadow-lg bg-primary">
+            <Card className="w-56 h-[28rem] flex flex-col justify-between shadow-lg bg-card">
               <CardHeader>
                 <CardTitle className="text-lg">Meal Planner</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -37,17 +37,17 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow flex items-center justify-center">
-                <h1 className="text-center text-base font-medium text-gray-600">🥗 Testing</h1>
+                <h1 className="text-center text-base font-medium text-gray-600">🥗 Meals</h1>
               </CardContent>
               <CardFooter className="flex justify-center py-3 text-sm text-gray-500">
-                Footer
+                LazyNoons
               </CardFooter>
             </Card>
           </Link>
 
           {/* Movie Planner */}
           <Link href="/movieplanner" passHref>
-            <Card className="w-56 h-[28rem] flex flex-col justify-between shadow-lg bg-primary">
+            <Card className="w-56 h-[28rem] flex flex-col justify-between shadow-lg bg-card">
               <CardHeader>
                 <CardTitle className="text-lg">Movie Planner</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -55,10 +55,10 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow flex items-center justify-center">
-                <h1 className="text-center text-base font-medium text-gray-600">🎬 Testing</h1>
+                <h1 className="text-center text-base font-medium text-gray-600">🎬 Movies</h1>
               </CardContent>
               <CardFooter className="flex justify-center py-3 text-sm text-gray-500">
-                Footer
+                LazyNoons
               </CardFooter>
             </Card>
           </Link>

@@ -13,7 +13,7 @@ interface AuthState {
   warmUp: () => Promise<void>
   logout: () => void
 }
-export const url = "https://backend-51tb.onrender.com"
+export const url = process.env.NEXT_PUBLIC_API_BASE_URL;
 export const useAuthStore = create<AuthState>((set, get) => ({
   email: '',
   password: '',
