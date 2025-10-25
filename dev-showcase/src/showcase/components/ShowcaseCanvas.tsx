@@ -5,6 +5,7 @@ import APIFetcher from './APIFetcher'
 import ChatUI from './ChatUI'
 import MealRecommender from './MealPlanner'
 import MovieRecommender from './MoviePlanner'
+import MovieTable from './movieTable'
 
 export default function ShowcaseCanvas() {
   const { activeComponent } = useShowcaseStore()
@@ -16,7 +17,7 @@ export default function ShowcaseCanvas() {
       case 'socket-viewer':
         return <div>🔌 Socket Playground coming soon</div>
       case 'data-table':
-        return <div>📊 Data Table component</div>
+        return <MovieTable />
       case 'retry-tester':
         return <div>⏳ Retry Tester demo</div>
       case 'chat-ui':
