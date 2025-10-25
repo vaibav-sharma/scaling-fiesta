@@ -2,7 +2,13 @@ import "./globals.css";
 import React from "react";
 
 export const metadata = {
-  title: "AI Engine",
+  title: "Vaibav",
+  description: 'A collection of interactive developer tools and demos',
+  icons: {
+    icon: '/favicon.png', // your favicon path in public/
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
   // title: "Vaibav Sharma — Building Intelligent Apps for the Future",
 };
 

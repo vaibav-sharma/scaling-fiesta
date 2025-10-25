@@ -84,7 +84,7 @@ export default function MovieRecommender() {
       setLoading(true)
       setError('')
       const method = 'POST'
-      const url = `${baseURL}/api/meal-suggestion`
+      const url = `${baseURL}/api/movie-planner`
       const payloadType = 'json'
 
       const payload = {
