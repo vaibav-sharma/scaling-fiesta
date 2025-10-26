@@ -24,6 +24,7 @@ import { getAllMovies, saveMovie } from '@/src/utils/movieDB'
 import { FlipWordsDemo } from '@/src/utils/flipWords'
 import { HeroHighlightDemo } from '@/src/utils/highlightWords'
 import { LayoutTextFlipDemo } from '@/src/utils/textFlip'
+import { truncateMiddle } from '@/src/utils/truncate'
 
 export default function MovieRecommender() {
   const [mood, setMood] = useState('inspiring')
@@ -45,18 +46,18 @@ export default function MovieRecommender() {
   }
 
   const handleMovieLoader = async (e: React.MouseEvent, title: string) => {
-  e.preventDefault()
-  try {
-    const all = await getAllMovies()
-    const movieInfo = all.find((m) => m.data.top_pick?.title === title)
-    if (movieInfo) {
-      setResult(movieInfo.data)
-      toast.success('Loaded saved movie!')
-    } else toast.error('Movie not found in your history.')
-  } catch (err) {
-    toast.error('Failed to load from IndexedDB.')
+    e.preventDefault()
+    try {
+      const all = await getAllMovies()
+      const movieInfo = all.find((m) => m.data.top_pick?.title === title)
+      if (movieInfo) {
+        setResult(movieInfo.data)
+        toast.success('Loaded saved movie!')
+      } else toast.error('Movie not found in your history.')
+    } catch (err) {
+      toast.error('Failed to load from IndexedDB.')
+    }
   }
-}
 
   const handleRemoveMovie = (idx: number) => {
     setPastMovies(prev => prev.filter((_, i) => i !== idx))
@@ -134,16 +135,16 @@ export default function MovieRecommender() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="bg-background text-foreground p-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="border border-border bg-card shadow-md">
+        <Card className="border border-border bg-card shadow-md text-card-foreground">
           <CardHeader>
             {/* <CardTitle>
               What Movie Should I Watch?
             </CardTitle> */}
             <CardTitle>
               {/* <FlipWordsDemo {...({ flipWords: ["inspiring", "funny", "romantic", "thought-provoking"], phrase: "Want to watch something" } as any)} /> */}
-              <LayoutTextFlipDemo text={["sci-fi?", "funny?", "classic?", "action?"]} phrase="Want to watch something" disc="AI-powered movie recommendations based on your taste and mood 🎬"/>
+              <LayoutTextFlipDemo text={["sci-fi?", "funny?", "classic?", "action?"]} phrase="Want to watch something" disc="AI-powered movie recommendations based on your taste and mood 🎬" />
             </CardTitle>
             <CardDescription>
               {/* <LayoutTextFlipDemo text="AI-powered movie recommendations based on your taste and mood 🎬"/> */}
@@ -155,32 +156,37 @@ export default function MovieRecommender() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label>Mood / Theme</Label>
-                <Input value={mood} onChange={e => setMood(e.target.value)} />
+                {/* <Input value={mood} onChange={e => setMood(e.target.value)} /> */}
+                <Input
+                  value={mood}
+                  onChange={e => setMood(e.target.value)}
+                  className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                />
               </div>
 
               <div>
                 <Label>Genres (comma separated)</Label>
-                <Input value={genres} onChange={e => setGenres(e.target.value)} />
+                <Input value={genres} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setGenres(e.target.value)} />
               </div>
 
               <div>
                 <Label>Language</Label>
-                <Input value={language} onChange={e => setLanguage(e.target.value)} />
+                <Input value={language} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setLanguage(e.target.value)} />
               </div>
 
               <div>
                 <Label>Platform</Label>
-                <Input value={platform} onChange={e => setPlatform(e.target.value)} />
+                <Input value={platform} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setPlatform(e.target.value)} />
               </div>
 
               <div>
                 <Label>Context (who’s watching)</Label>
-                <Input value={context} onChange={e => setContext(e.target.value)} />
+                <Input value={context} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setContext(e.target.value)} />
               </div>
 
               <div>
                 <Label>Extra Notes</Label>
-                <Input value={notes} onChange={e => setNotes(e.target.value)} />
+                <Input value={notes} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setNotes(e.target.value)} />
               </div>
             </div>
 
@@ -190,6 +196,39 @@ export default function MovieRecommender() {
               <Label>Past Watched Movies (avoid repetition)</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {pastMovies.length > 0 ? (
+                  pastMovies.map((movie, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="flex items-center gap-1 max-w-[200px]"
+                      title={movie} // show full title on hover
+                    >
+                      <button
+                        onClick={(e) => handleMovieLoader(e, movie)}
+                        className="mr-1 text-xs hover:text-blue-500 shrink-0"
+                      >
+                        ℹ️
+                      </button>
+
+                      <span
+                        className="truncate text-xs font-medium flex-1 text-center"
+                        title={movie}
+                      >
+                        {truncateMiddle(movie, 30)}
+                      </span>
+
+                      <button
+                        onClick={() => handleRemoveMovie(idx)}
+                        className="ml-1 text-xs hover:text-red-500 shrink-0"
+                      >
+                        ✕
+                      </button>
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No past movies yet.</p>
+                )}
+                {/* {pastMovies.length > 0 ? (
                   pastMovies.map((movie, idx) => (
                     <Badge key={idx} variant="secondary" className="flex items-center gap-1">
                       <button onClick={(e) => handleMovieLoader(e, movie)} className="mr-1 text-xs hover:text-blue-500">ℹ️</button>
@@ -208,14 +247,14 @@ export default function MovieRecommender() {
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground">No past movies yet.</p>
-                )}
+                )} */}
               </div>
 
               <div className="flex gap-2 mt-3">
                 <Input
                   placeholder="Add movie..."
                   value={recentInput}
-                  onChange={e => setRecentInput(e.target.value)}
+                  className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setRecentInput(e.target.value)}
                 />
                 <Button variant="default" onClick={handleAddMovie}>
                   + Add
@@ -243,7 +282,7 @@ export default function MovieRecommender() {
         </Card>
 
         {result && (
-          <Card className="border border-border bg-card shadow-md">
+          <Card className="border border-border bg-card shadow-md text-card-foreground">
             <CardHeader>
               <CardTitle>{result.top_pick?.title || 'Movie Recommendation'}</CardTitle>
               <CardDescription>{result.mood} • {result.genre} • {result.language}</CardDescription>

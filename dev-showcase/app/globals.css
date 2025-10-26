@@ -82,10 +82,18 @@
   }
 
   body {
+    @apply bg-background;
+    font-family: 'Inter', ui-sans-serif, system-ui;
+    transition: background-color 0.3s, color 0.3s;
+    overflow: auto !important;
+
+  }
+
+  /* body {
     @apply bg-background text-foreground;
     font-family: 'Inter', ui-sans-serif, system-ui;
     transition: background-color 0.3s, color 0.3s;
-  }
+  } */
 }
 
 /* ---------- COLOR VARIANTS ---------- */

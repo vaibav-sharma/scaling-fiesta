@@ -21,6 +21,8 @@ import { apiRequest } from '@/src/utils/apiClient'
 import { Spinner } from '@/src/components/ui/spinner'
 import { SpinnerBadge } from '@/src/utils/spinner'
 import { FlipWordsDemo } from '@/src/utils/flipWords'
+import { saveMeal, getAllMeals } from "@/src/utils/mealDB"
+import { truncateMiddle } from '@/src/utils/truncate'
 
 // -----------------------------
 // Mock meal generation function
@@ -77,6 +79,36 @@ export default function MealRecommender() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any | null>(null)
+
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        const savedLocal = JSON.parse(localStorage.getItem('mealHistory') || '[]')
+        const savedIndexed = await getAllMeals()
+
+        // Merge and deduplicate
+        const allMeals = [
+          ...savedLocal.map((m: any) => ({ ...m, source: "localStorage" })),
+          ...savedIndexed.map((m) => ({ ...m.data, source: "indexedDB" }))
+        ]
+
+        // Optional: deduplicate based on mains+base combo
+        const unique = allMeals.filter(
+          (v, i, a) => i === a.findIndex((t) => t.mains === v.mains && t.base === v.base)
+        )
+
+        if (unique.length) {
+          setRecentMeals(unique.map((m: any) => `${m.mains} with ${m.base}`))
+        }
+
+        console.log("Loaded meals from IndexedDB:", savedIndexed)
+      } catch (err) {
+        console.error("Failed to load from IndexedDB:", err)
+      }
+    }
+
+    initData()
+  }, [])
 
   const handleAddMeal = () => {
     if (!recentInput.trim()) return
@@ -193,6 +225,29 @@ export default function MealRecommender() {
     // setRecentMeals((prev) => [`${result.mains} with ${result.base}`, ...prev.slice(0, 7)])
   }
 
+  const handleSave = async () => {
+    if (!result) return toast('No suggestion to save yet.')
+
+    try {
+      toast.success('Meal saved!')
+
+      // LocalStorage logic
+      const stored = JSON.parse(localStorage.getItem('mealHistory') || '[]')
+      const exists = stored.some((m: any) => m.mains === result.mains && m.base === result.base)
+      if (!exists) {
+        const updated = [result, ...stored].slice(0, 10)
+        localStorage.setItem('mealHistory', JSON.stringify(updated))
+        setRecentMeals(updated.map((m: any) => `${m.mains} with ${m.base}`))
+      }
+
+      // IndexedDB logic
+      await saveMeal(result)
+      console.log("Saved meal to IndexedDB:", result)
+    } catch (err) {
+      console.error("Failed to save meal to IndexedDB:", err)
+      toast.error('Could not save meal.')
+    }
+  }
   // const handleSave = () => {
   //   if (!result) return toast('No suggestion to save yet.')
   //   toast.success('Meal saved to your recent list!')
@@ -205,18 +260,18 @@ export default function MealRecommender() {
   //     setRecentMeals((prev) => [`${result.mains} with ${result.base}`, ...prev.slice(0, 7)])
   //   }
   // }
-  const handleSave = () => {
-    if (!result) return toast('No suggestion to save yet.');
-    toast.success('Meal saved!');
+  // const handleSave = () => {
+  //   if (!result) return toast('No suggestion to save yet.');
+  //   toast.success('Meal saved!');
 
-    const stored = JSON.parse(localStorage.getItem('mealHistory') || '[]');
-    const exists = stored.some((m: any) => m.mains === result.mains && m.base === result.base);
-    if (!exists) {
-      const updated = [result, ...stored].slice(0, 10);
-      localStorage.setItem('mealHistory', JSON.stringify(updated));
-      setRecentMeals(updated.map((m: any) => `${m.mains} with ${m.base}`));
-    }
-  };
+  //   const stored = JSON.parse(localStorage.getItem('mealHistory') || '[]');
+  //   const exists = stored.some((m: any) => m.mains === result.mains && m.base === result.base);
+  //   if (!exists) {
+  //     const updated = [result, ...stored].slice(0, 10);
+  //     localStorage.setItem('mealHistory', JSON.stringify(updated));
+  //     setRecentMeals(updated.map((m: any) => `${m.mains} with ${m.base}`));
+  //   }
+  // };
 
   const handleRegenerate = () => {
     handleGenerate()
@@ -224,11 +279,11 @@ export default function MealRecommender() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="bg-background text-foreground p-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="border border-border bg-card shadow-md">
+        <Card className="border border-border bg-card shadow-md text-card-foreground">
           <CardHeader>
-            <CardTitle><FlipWordsDemo {...({flipWords: ["Breakfast", "Lunch", "Dinner"], phrase: "What should I eat for"} as any)} /></CardTitle>
+            <CardTitle><FlipWordsDemo {...({ flipWords: ["Breakfast", "Lunch", "Dinner"], phrase: "What should I eat for" } as any)} /></CardTitle>
             <CardDescription>Quick meal ideas tailored to your preferences</CardDescription>
           </CardHeader>
 
@@ -300,16 +355,43 @@ export default function MealRecommender() {
               <div className="flex flex-wrap gap-2 mt-2">
                 {recentMeals.length > 0 ? (
                   recentMeals.map((meal, idx) => (
-                    <Badge key={idx} variant="secondary" className="flex items-center gap-1" >
-                      <button onClick={(e) => handleMealLoader(e, meal)} className="mr-1 text-xs hover:text-blue-500">ℹ️</button>
-                      {meal}
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="flex items-center gap-1 max-w-[200px]" // keeps width tidy
+                      title={meal} // show full meal name on hover
+                    >
+                      <button
+                        onClick={(e) => handleMealLoader(e, meal)}
+                        className="mr-1 text-xs hover:text-blue-500 shrink-0"
+                      >
+                        ℹ️
+                      </button>
+
+                      <span
+                        className="truncate flex-1 text-xs font-medium text-center"
+                        title={meal}
+                      >
+                        {truncateMiddle(meal, 30)}
+                      </span>
+
                       <button
                         onClick={() => handleRemoveMeal(idx)}
-                        className="ml-1 text-xs hover:text-red-500"
+                        className="ml-1 text-xs hover:text-red-500 shrink-0"
                       >
                         ✕
                       </button>
                     </Badge>
+                    // <Badge key={idx} variant="secondary" className="flex items-center gap-1" >
+                    //   <button onClick={(e) => handleMealLoader(e, meal)} className="mr-1 text-xs hover:text-blue-500">ℹ️</button>
+                    //   {meal}
+                    //   <button
+                    //     onClick={() => handleRemoveMeal(idx)}
+                    //     className="ml-1 text-xs hover:text-red-500"
+                    //   >
+                    //     ✕
+                    //   </button>
+                    // </Badge>
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground">No recent meals yet.</p>
@@ -335,7 +417,7 @@ export default function MealRecommender() {
               </div>
             </div>
 
-            {loading ? <SpinnerBadge text="Planning your meal for you"/> : <div className="flex justify-between mt-4">
+            {loading ? <SpinnerBadge text="Planning your meal for you" /> : <div className="flex justify-between mt-4">
               <Button onClick={handleGenerate}>
                 <ArrowRight className="w-4 h-4 mr-1" /> Get Suggestion
               </Button>
@@ -343,8 +425,11 @@ export default function MealRecommender() {
                 {/* <Button variant="secondary" onClick={handleSave}>
                   <Save className="w-4 h-4 mr-1" /> Save Meal
                 </Button> */}
-                <Button variant="outline" onClick={handleRegenerate}>
+                {/* <Button variant="outline" onClick={handleRegenerate}>
                   <RefreshCcw className="w-4 h-4 mr-1" /> Generate Again
+                </Button> */}
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  <RefreshCcw className="w-4 h-4 mr-1" /> Reset
                 </Button>
               </div>
             </div>}
@@ -354,7 +439,7 @@ export default function MealRecommender() {
         </Card>
 
         {result && (
-          <Card className="border border-border bg-card shadow-md">
+          <Card className="border border-border bg-card shadow-md text-card-foreground">
             <CardHeader>
               <CardTitle>
                 {result.mealType} — {result.dietType}

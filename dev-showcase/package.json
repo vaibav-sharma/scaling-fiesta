@@ -16,9 +16,11 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@radix-ui/react-visually-hidden": "^1.2.3",
     "@tanstack/react-query": "5.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^1.2.1",
+    "cmdk": "^1.1.1",
     "framer-motion": "10.12.6",
     "lucide-react": "^0.545.0",
     "mini-svg-data-uri": "^1.4.4",
@@ -31,9 +33,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwind-variants": "^3.1.1",
     "tailwindcss-animate": "^1.0.7",
-    "zustand": "^4.4.0",
-    "@radix-ui/react-visually-hidden": "^1.2.3",
-    "cmdk": "^1.1.1"
+    "zustand": "^4.4.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "0.5.10",

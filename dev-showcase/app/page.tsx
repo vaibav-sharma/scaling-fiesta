@@ -1,26 +1,28 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { MotionDiv } from '@/src/lib/utils'
-import { useRouter } from "next/navigation"
+import { MotionDiv } from "@/src/lib/utils"
+import { TextGenerateEffect } from "@/src/components/ui/text-generate-effect"
 
 const initCards = [
-  { id: 1, title: "Movie Planner", emoji: "🎯", uid: 0, link: "/movieplanner", tilt: 2 },
-  { id: 2, title: "Meal Planner", emoji: "🚀", uid: 1, link: "/mealplanner", tilt: -6 },
-  // { id: 3, title: "Workout Tracker", emoji: "💪", uid: 2, link: "/workout", tilt: 5 },
+  { id: 1, title: "Movie Planner", description: "Organize your next watchlist and track viewing progress", emoji: "🍿", uid: 0, link: "/movieplanner", tilt: 2 },
+  { id: 2, title: "Meal Planner", description: "Plan healthy meals for the week and auto-generate grocery lists", emoji: "🥗", uid: 1, link: "/mealplanner", tilt: -6 },
 ]
 
 // Hook to detect viewport width
-function useMediaQuery(query: string) {
+function useMediaQuery(query: any) {
   const [matches, setMatches] = useState(false)
 
   useEffect(() => {
-    const media = window.matchMedia(query)
-    setMatches(media.matches)
-    const listener = () => setMatches(media.matches)
-    media.addEventListener("change", listener)
-    return () => media.removeEventListener("change", listener)
+    // Only run on the client side
+    if (typeof window !== 'undefined') {
+        const media = window.matchMedia(query)
+        setMatches(media.matches)
+        const listener = () => setMatches(media.matches)
+        media.addEventListener("change", listener)
+        return () => media.removeEventListener("change", listener)
+    }
   }, [query])
 
   return matches
@@ -30,31 +32,36 @@ export default function SwipeStack() {
   const [cards, setCards] = useState(initCards)
   const [instanceKey, setInstanceKey] = useState(Date.now())
   const dragDistance = useRef(0)
-  const router = useRouter()
+  // Replaced `router` dependency check with `typeof window !== 'undefined'` in useEffect for better SSR/SSG compatibility
   const isDesktop = useMediaQuery("(min-width: 1024px)")
 
   useEffect(() => {
-    const handlePageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) setInstanceKey(Date.now())
+    // Only run on the client side
+    if (typeof window !== 'undefined') {
+        const handlePageShow = (e: any) => {
+          if (e.persisted) setInstanceKey(Date.now())
+        }
+        window.addEventListener("pageshow", handlePageShow)
+        return () => window.removeEventListener("pageshow", handlePageShow)
     }
-    window.addEventListener("pageshow", handlePageShow)
-    return () => window.removeEventListener("pageshow", handlePageShow)
   }, [])
 
   const handleSwipe = () => {
     setCards((prev) => {
+      // Re-add the first card to the end of the array to create the loop effect
       const [first, ...rest] = prev
       const bumped = { ...first, uid: (first.uid || 0) + 1 }
       return [...rest, bumped]
     })
   }
 
+  // --- DESKTOP VIEW ---
   if (isDesktop) {
     // 🖥️ DESKTOP: Carousel view
     return (
       <div className="relative w-full max-w-5xl mx-auto h-[400px] flex items-center justify-center overflow-hidden">
         <MotionDiv
-          className="flex gap-6 overflow-x-auto snap-x snap-mandatory px-6"
+          className="flex gap-8 overflow-x-auto snap-x snap-mandatory px-6 pb-2 min-h-[37vh]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
@@ -62,11 +69,16 @@ export default function SwipeStack() {
           {cards.map((card) => (
             <MotionDiv
               key={card.id}
-              className="snap-center flex-shrink-0 w-72 h-96 rounded-2xl border border-border shadow-xl bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none hover:scale-105 transition-transform duration-300"
+              className="snap-center flex-shrink-0 w-80 h-96 rounded-2xl border border-border 
+                         shadow-xl dark:shadow-auto bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-6 
+                         cursor-pointer select-none hover:scale-[1.02] transition-transform duration-300"
               onClick={() => window.location.href = card.link}
             >
-              <span className="text-5xl mb-2">{card.emoji}</span>
-              <h3 className="font-semibold text-lg">{card.title}</h3>
+              <span className="text-7xl mb-4">{card.emoji}</span>
+              <h3 className="font-bold text-xl mb-2 text-foreground">{card.title}</h3>
+              <p className="text-sm text-foreground/70 px-2 leading-relaxed ">
+                <TextGenerateEffect className="text-foreground/70 text-sm" words={card.description} />
+              </p>
             </MotionDiv>
           ))}
         </MotionDiv>
@@ -74,6 +86,7 @@ export default function SwipeStack() {
     )
   }
 
+  // --- MOBILE VIEW ---
   // 📱 MOBILE: Swipe stack
   return (
     <div
@@ -90,7 +103,9 @@ export default function SwipeStack() {
           return (
             <MotionDiv
               key={`${card.id}-${card.uid || 0}`}
-              className="absolute w-72 h-96 rounded-2xl border border-border shadow-xl bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none"
+              className="absolute w-72 h-96 rounded-2xl border border-border 
+                         shadow-xl dark:shadow-auto bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-6 
+                         cursor-pointer select-none"
               drag={isTop ? "x" : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
@@ -102,7 +117,6 @@ export default function SwipeStack() {
                 touchAction: "pan-y",
               }}
               whileDrag={{ scale: 1.05 }}
-              // onDrag={(e, info) => (dragDistance.current = Math.abs(info.offset.x))}
               onDrag={((_: MouseEvent | PointerEvent | TouchEvent, info: any) => {
                 dragDistance.current = Math.abs(info.offset.x)
               }) as any}
@@ -116,8 +130,9 @@ export default function SwipeStack() {
               animate={{ opacity: 1, scale, y: yOffset, rotate: rotation }}
               transition={{ duration: 0.3 }}
             >
-              <span className="text-5xl mb-2">{card.emoji}</span>
-              <h3 className="font-semibold text-lg">{card.title}</h3>
+              <span className="text-7xl mb-4">{card.emoji}</span>
+              <h3 className="font-bold text-xl mb-2 text-foreground">{card.title}</h3>
+              <p className="text-sm text-foreground/70 px-2 leading-relaxed">{card.description}</p>
             </MotionDiv>
           )
         })}
@@ -129,6 +144,139 @@ export default function SwipeStack() {
     </div>
   )
 }
+
+
+// "use client"
+
+// import { useState, useEffect, useRef } from "react"
+// import { motion, AnimatePresence } from "framer-motion"
+// import { MotionDiv } from '@/src/lib/utils'
+// import { useRouter } from "next/navigation"
+
+// const initCards = [
+//   { id: 1, title: "Movie Planner", emoji: "🎯", uid: 0, link: "/movieplanner", tilt: 2 },
+//   { id: 2, title: "Meal Planner", emoji: "🚀", uid: 1, link: "/mealplanner", tilt: -6 },
+//   // { id: 3, title: "Workout Tracker", emoji: "💪", uid: 2, link: "/workout", tilt: 5 },
+// ]
+
+// // Hook to detect viewport width
+// function useMediaQuery(query: string) {
+//   const [matches, setMatches] = useState(false)
+
+//   useEffect(() => {
+//     const media = window.matchMedia(query)
+//     setMatches(media.matches)
+//     const listener = () => setMatches(media.matches)
+//     media.addEventListener("change", listener)
+//     return () => media.removeEventListener("change", listener)
+//   }, [query])
+
+//   return matches
+// }
+
+// export default function SwipeStack() {
+//   const [cards, setCards] = useState(initCards)
+//   const [instanceKey, setInstanceKey] = useState(Date.now())
+//   const dragDistance = useRef(0)
+//   const router = useRouter()
+//   const isDesktop = useMediaQuery("(min-width: 1024px)")
+
+//   useEffect(() => {
+//     const handlePageShow = (e: PageTransitionEvent) => {
+//       if (e.persisted) setInstanceKey(Date.now())
+//     }
+//     window.addEventListener("pageshow", handlePageShow)
+//     return () => window.removeEventListener("pageshow", handlePageShow)
+//   }, [])
+
+//   const handleSwipe = () => {
+//     setCards((prev) => {
+//       const [first, ...rest] = prev
+//       const bumped = { ...first, uid: (first.uid || 0) + 1 }
+//       return [...rest, bumped]
+//     })
+//   }
+
+//   if (isDesktop) {
+//     // 🖥️ DESKTOP: Carousel view
+//     return (
+//       <div className="relative w-full max-w-5xl mx-auto h-[400px] flex items-center justify-center overflow-hidden">
+//         <MotionDiv
+//           className="flex gap-6 overflow-x-auto snap-x snap-mandatory px-6 min-h-[37vh]"
+//           initial={{ opacity: 0 }}
+//           animate={{ opacity: 1 }}
+//           transition={{ duration: 0.4 }}
+//         >
+//           {cards.map((card) => (
+//             <MotionDiv
+//               key={card.id}
+//               className="snap-center flex-shrink-0 w-72 h-96 rounded-2xl border border-border shadow-xl dark:shadow-2xl bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none hover:scale-105 transition-transform duration-300"
+//               onClick={() => window.location.href = card.link}
+//             >
+//               <span className="text-5xl mb-2">{card.emoji}</span>
+//               <h3 className="font-semibold text-lg">{card.title}</h3>
+//             </MotionDiv>
+//           ))}
+//         </MotionDiv>
+//       </div>
+//     )
+//   }
+
+//   // 📱 MOBILE: Swipe stack
+//   return (
+//     <div
+//       key={instanceKey}
+//       className="relative w-full h-[500px] flex items-center justify-center overflow-hidden"
+//     >
+//       <AnimatePresence initial={false}>
+//         {cards.map((card, i) => {
+//           const isTop = i === 0
+//           const rotation = isTop ? 0 : card.tilt
+//           const yOffset = i * 10
+//           const scale = 1 - i * 0.05
+
+//           return (
+//             <MotionDiv
+//               key={`${card.id}-${card.uid || 0}`}
+//               className="absolute w-72 h-96 rounded-2xl border border-border shadow-xl dark:shadow-2xl bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none"
+//               drag={isTop ? "x" : false}
+//               dragConstraints={{ left: 0, right: 0 }}
+//               dragElastic={0.2}
+//               style={{
+//                 rotate: `${rotation}deg`,
+//                 y: yOffset,
+//                 scale,
+//                 zIndex: cards.length - i,
+//                 touchAction: "pan-y",
+//               }}
+//               whileDrag={{ scale: 1.05 }}
+//               // onDrag={(e, info) => (dragDistance.current = Math.abs(info.offset.x))}
+//               onDrag={((_: MouseEvent | PointerEvent | TouchEvent, info: any) => {
+//                 dragDistance.current = Math.abs(info.offset.x)
+//               }) as any}
+//               onDragEnd={() => {
+//                 if (!isTop) return
+//                 if (dragDistance.current > 100) handleSwipe()
+//               }}
+//               onClick={() => window.location.href = card.link}
+//               whileTap={{ scale: 0.97 }}
+//               initial={{ opacity: 0, scale: 0.95, y: 20 }}
+//               animate={{ opacity: 1, scale, y: yOffset, rotate: rotation }}
+//               transition={{ duration: 0.3 }}
+//             >
+//               <span className="text-5xl mb-2">{card.emoji}</span>
+//               <h3 className="font-semibold text-lg">{card.title}</h3>
+//             </MotionDiv>
+//           )
+//         })}
+//       </AnimatePresence>
+
+//       <div className="absolute bottom-4 text-xs text-muted-foreground animate-pulse text-neutral-900 dark:text-white">
+//         ⇄ swipe or tap
+//       </div>
+//     </div>
+//   )
+// }
 
 // "use client"
 

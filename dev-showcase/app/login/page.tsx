@@ -47,7 +47,7 @@ export default function Page() {
 
     return (
         // <div className="min-h-screen grid lg:grid-cols-2">
-        <div className="h-screen grid lg:grid-cols-2 overflow-hidden">
+        <div className="grid lg:grid-cols-2 overflow-hidden">
             {/* Left side */}
             <LeftSide />
 
