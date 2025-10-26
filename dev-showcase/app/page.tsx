@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { MotionDiv } from '@/src/lib/utils'
 import { useRouter } from "next/navigation"
 
 const initCards = [
@@ -52,23 +53,23 @@ export default function SwipeStack() {
     // 🖥️ DESKTOP: Carousel view
     return (
       <div className="relative w-full max-w-5xl mx-auto h-[400px] flex items-center justify-center overflow-hidden">
-        <motion.div
+        <MotionDiv
           className="flex gap-6 overflow-x-auto snap-x snap-mandatory px-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
         >
           {cards.map((card) => (
-            <motion.div
+            <MotionDiv
               key={card.id}
               className="snap-center flex-shrink-0 w-72 h-96 rounded-2xl border border-border shadow-xl bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none hover:scale-105 transition-transform duration-300"
               onClick={() => window.location.href = card.link}
             >
               <span className="text-5xl mb-2">{card.emoji}</span>
               <h3 className="font-semibold text-lg">{card.title}</h3>
-            </motion.div>
+            </MotionDiv>
           ))}
-        </motion.div>
+        </MotionDiv>
       </div>
     )
   }
@@ -87,21 +88,24 @@ export default function SwipeStack() {
           const scale = 1 - i * 0.05
 
           return (
-            <motion.div
+            <MotionDiv
               key={`${card.id}-${card.uid || 0}`}
               className="absolute w-72 h-96 rounded-2xl border border-border shadow-xl bg-white dark:bg-[#001343] flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none"
               drag={isTop ? "x" : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
               style={{
-                rotate: rotation,
+                rotate: `${rotation}deg`,
                 y: yOffset,
                 scale,
                 zIndex: cards.length - i,
                 touchAction: "pan-y",
               }}
               whileDrag={{ scale: 1.05 }}
-              onDrag={(e, info) => (dragDistance.current = Math.abs(info.offset.x))}
+              // onDrag={(e, info) => (dragDistance.current = Math.abs(info.offset.x))}
+              onDrag={((_: MouseEvent | PointerEvent | TouchEvent, info: any) => {
+                dragDistance.current = Math.abs(info.offset.x)
+              }) as any}
               onDragEnd={() => {
                 if (!isTop) return
                 if (dragDistance.current > 100) handleSwipe()
@@ -114,7 +118,7 @@ export default function SwipeStack() {
             >
               <span className="text-5xl mb-2">{card.emoji}</span>
               <h3 className="font-semibold text-lg">{card.title}</h3>
-            </motion.div>
+            </MotionDiv>
           )
         })}
       </AnimatePresence>
