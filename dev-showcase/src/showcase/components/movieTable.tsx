@@ -126,6 +126,33 @@ export default function MovieTable() {
         )
     }
 
+    function ExpandedDetails({ data, top }: { data: any; top: any }) {
+        return (
+            <div className="p-2 space-y-2 text-sm break-words whitespace-normal leading-relaxed">
+                <div>
+                    <h4 className="font-semibold">Top Pick</h4>
+                    <p className="text-primary font-medium">{top.title || '-'}</p>
+                    {top.description && (
+                        <p className="text-muted-foreground mt-1">{top.description}</p>
+                    )}
+                </div>
+
+                {Array.isArray(data.alternatives) && data.alternatives.length > 0 && (
+                    <div>
+                        <h4 className="font-semibold mt-2">Alternatives</h4>
+                        <ul className="list-disc list-inside space-y-1">
+                            {data.alternatives.map((a: any, i: number) => (
+                                <li key={i}>
+                                    <strong>{a.title}</strong> — {a.note}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </div>
+        )
+    }
+
     return (
         <Card className="w-full">
             <CardHeader>
@@ -138,127 +165,151 @@ export default function MovieTable() {
                 {movies.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No saved movies found.</p>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[40%]">Title</TableHead>
-                                <TableHead>Genre</TableHead>
-                                <TableHead>Language</TableHead>
-                                <TableHead>Picked</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <>
+                        {/* Desktop table */}
+                        <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[40%]">Title</TableHead>
+                                        <TableHead>Genre</TableHead>
+                                        <TableHead>Language</TableHead>
+                                        <TableHead>Picked</TableHead>
+                                        <TableHead className="text-center">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {movies.map((row) => {
+                                        const data = row.data || {}
+                                        const top = data.top_pick || {}
+                                        const title = top.title || data.title || 'Untitled'
+                                        const genre = data.genre || (Array.isArray(data.genre) ? data.genre.join(', ') : data.genre) || (data.top_pick?.genre ?? '—')
+                                        const language = data.language || data.top_pick?.language || '—'
+
+                                        return (
+                                            <React.Fragment key={String(row.id)}>
+                                                <TableRow>
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium">{title}</span>
+                                                            <span className="text-xs text-muted-foreground">
+                                                                saved {row.createdAt ? new Date(row.createdAt).toLocaleString() : '—'}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {genre ? <Badge variant="secondary">{genre}</Badge> : '—'}
+                                                    </TableCell>
+                                                    <TableCell>{language}</TableCell>
+                                                    <TableCell>
+                                                        {top.title ? (
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm">{top.title}</span>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    {top.reason?.slice(0, 80) + (top.reason?.length > 80 ? '…' : '')}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted-foreground">—</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() =>
+                                                                    setExpanded((s) => ({
+                                                                        ...s,
+                                                                        [String(row.id)]: !s[String(row.id)],
+                                                                    }))
+                                                                }
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() => handleDelete(row.id)}
+                                                            >
+                                                                <Trash2 className="w-4 h-4 text-foreground" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                                {expanded[String(row.id)] && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={5}>
+                                                            <ExpandedDetails data={data} top={top} />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </React.Fragment>
+                                        )
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        {/* Mobile cards */}
+                        <div className="block md:hidden space-y-4">
                             {movies.map((row) => {
-                                // Try to extract fields safely from the saved object shape (your app uses `data` wrapper)
                                 const data = row.data || {}
                                 const top = data.top_pick || {}
-                                const title = top.title || data.title || data.mains || 'Untitled'
+                                const title = top.title || data.title || 'Untitled'
                                 const genre = data.genre || (Array.isArray(data.genre) ? data.genre.join(', ') : data.genre) || (data.top_pick?.genre ?? '—')
                                 const language = data.language || data.top_pick?.language || '—'
+
                                 return (
-                                    <React.Fragment key={String(row.id)}>
-                                        <TableRow>
-                                            <TableCell>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{title}</span>
-                                                    <span className="text-xs text-muted-foreground">
-                                                        saved {row.createdAt ? new Date(row.createdAt).toLocaleString() : '—'}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
+                                    <div
+                                        key={String(row.id)}
+                                        className="border border-border bg-card rounded-lg shadow-sm p-4 space-y-2"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-semibold text-base leading-tight">{title}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '—'}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setExpanded((s) => ({
+                                                            ...s,
+                                                            [String(row.id)]: !s[String(row.id)],
+                                                        }))
+                                                    }
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="destructive"
+                                                    onClick={() => handleDelete(row.id)}
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-foreground" />
+                                                </Button>
+                                            </div>
+                                        </div>
 
-                                            <TableCell>
-                                                {genre ? <Badge variant="secondary">{genre}</Badge> : '—'}
-                                            </TableCell>
-
-                                            <TableCell>{language}</TableCell>
-
-                                            <TableCell>
-                                                {top.title ? (
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm">{top.title}</span>
-                                                        <span className="text-xs text-muted-foreground">{top?.reason ? top.reason.slice(0, 80) + (top.reason.length > 80 ? '…' : '') : ''}</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-muted-foreground">—</span>
-                                                )}
-                                            </TableCell>
-
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => setExpanded((s) => ({ ...s, [String(row.id)]: !s[String(row.id)] }))}
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                    </Button>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={() => handleDelete(row.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
+                                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                                            {genre && <Badge variant="secondary">{genre}</Badge>}
+                                            {language !== '—' && <Badge variant="outline">{language}</Badge>}
+                                        </div>
 
                                         {expanded[String(row.id)] && (
-                                            <TableRow>
-                                                <TableCell colSpan={5}>
-                                                    <div className="p-3 bg-muted/5 rounded-md">
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            {/* Top Pick Section */}
-                                                            <div className="break-words whitespace-normal leading-relaxed">
-                                                                <h4 className="font-semibold">Top Pick</h4>
-                                                                <p className="text-sm text-primary font-medium break-words whitespace-normal">
-                                                                    {top.title || '-'}
-                                                                </p>
-                                                                {top.description && (
-                                                                    <p className="mt-2 text-sm text-muted-foreground break-words whitespace-normal leading-relaxed">
-                                                                        {top.description}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Alternatives Section */}
-                                                            <div className="break-words whitespace-normal leading-relaxed">
-                                                                <h4 className="font-semibold">Alternatives</h4>
-                                                                {Array.isArray(data.alternatives) && data.alternatives.length > 0 ? (
-                                                                    <ul className="list-disc list-inside text-sm break-words whitespace-normal leading-relaxed">
-                                                                        {data.alternatives.map((a: any, i: number) => (
-                                                                            <li key={i} className="break-words whitespace-normal">
-                                                                                <strong>{a.title}</strong> — {a.note}
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                ) : (
-                                                                    <p className="text-sm text-muted-foreground">No alternatives saved.</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Comment Section */}
-                                                        {data.comment && (
-                                                            <div className="mt-3 break-words whitespace-normal leading-relaxed">
-                                                                <h4 className="font-semibold">Comment</h4>
-                                                                <p className="text-sm text-muted-foreground break-words whitespace-normal leading-relaxed">
-                                                                    {data.comment}
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
+                                            <div className="pt-2 border-t border-border mt-2">
+                                                <ExpandedDetails data={data} top={top} />
+                                            </div>
                                         )}
-                                    </React.Fragment>
+                                    </div>
                                 )
                             })}
-                        </TableBody>
-                    </Table>
+                        </div>
+                    </>
                 )}
             </CardContent>
 

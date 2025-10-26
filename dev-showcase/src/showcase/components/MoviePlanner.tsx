@@ -155,32 +155,32 @@ export default function MovieRecommender() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label>Mood / Theme</Label>
-                <Input value={mood} onChange={e => setMood(e.target.value)} />
+                <Input value={mood} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setMood(e.target.value)} />
               </div>
 
               <div>
                 <Label>Genres (comma separated)</Label>
-                <Input value={genres} onChange={e => setGenres(e.target.value)} />
+                <Input value={genres} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setGenres(e.target.value)} />
               </div>
 
               <div>
                 <Label>Language</Label>
-                <Input value={language} onChange={e => setLanguage(e.target.value)} />
+                <Input value={language} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setLanguage(e.target.value)} />
               </div>
 
               <div>
                 <Label>Platform</Label>
-                <Input value={platform} onChange={e => setPlatform(e.target.value)} />
+                <Input value={platform} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setPlatform(e.target.value)} />
               </div>
 
               <div>
                 <Label>Context (who’s watching)</Label>
-                <Input value={context} onChange={e => setContext(e.target.value)} />
+                <Input value={context} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setContext(e.target.value)} />
               </div>
 
               <div>
                 <Label>Extra Notes</Label>
-                <Input value={notes} onChange={e => setNotes(e.target.value)} />
+                <Input value={notes} className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setNotes(e.target.value)} />
               </div>
             </div>
 
@@ -215,7 +215,7 @@ export default function MovieRecommender() {
                 <Input
                   placeholder="Add movie..."
                   value={recentInput}
-                  onChange={e => setRecentInput(e.target.value)}
+                  className="bg-background text-foreground border border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none" onChange={e => setRecentInput(e.target.value)}
                 />
                 <Button variant="default" onClick={handleAddMovie}>
                   + Add
