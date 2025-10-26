@@ -4,6 +4,7 @@ import React from "react";
 import { HomeIcon } from "lucide-react";
 import ThemeToggle from "../src/utils/themeToggle";
 import LayoutHeader from "@/src/utils/LayoutHeader";
+import TouchDebugger from "./touchdebugger";
 
 export const metadata = {
   title: "Lazynoons",
@@ -19,23 +20,22 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-background text-foreground">
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (localStorage.theme === 'dark') {
-                document.documentElement.classList.add('dark');
-              } else {
-                document.documentElement.classList.remove('dark');
-              }
-            `,
-          }}
-        />
-        <div>
+      <body className="bg-background text-foreground overflow-hidden">
+        <div className="flex flex-col min-h-screen">
           <LayoutHeader />
-        </div>
 
-        {children}
+          <main
+            id="main-content"
+            className="flex-1 relative flex justify-center items-center overflow-visible"
+            style={{
+              touchAction: "auto", // ✅ enable all gestures
+              WebkitUserSelect: "none",
+              userSelect: "none",
+            }}
+          >
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );
