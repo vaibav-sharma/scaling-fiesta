@@ -134,7 +134,7 @@ export default function MovieRecommender() {
   }
 
   return (
-    <div className="bg-background text-foreground p-6">
+    <div className="min-h-screen bg-background text-foreground p-6">
       <div className="max-w-2xl mx-auto space-y-6">
         <Card className="border border-border bg-card shadow-md">
           <CardHeader>

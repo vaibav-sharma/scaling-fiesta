@@ -35,7 +35,7 @@ export default function ShowcaseCanvas() {
   }
 
   return (
-    <div className="flex-1 overflow-auto p-8 relative bg-background">
+    <div className="h-screen flex-1 overflow-auto p-8 relative bg-background">
       {/* Background grid — sits behind content but above page bg */}
       <div
         className="absolute inset-0 z-0"
