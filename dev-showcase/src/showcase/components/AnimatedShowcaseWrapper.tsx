@@ -44,7 +44,7 @@ export default function AnimatedCanvasWrapper({ children }: { children: React.Re
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.25 }}
-          className="flex justify-center items-start"
+          className="flex justify-center items-start p-6"
         >
           {children}
         </MotionDiv>

@@ -13,7 +13,8 @@ interface AuthState {
   warmUp: () => Promise<void>
   logout: () => void
 }
-export const url = process.env.NEXT_PUBLIC_API_BASE_URL;
+// export const url = process.env.NEXT_PUBLIC_API_BASE_URL;
+export const url = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "https://backend-51tb.onrender.com" || "http://localhost:3000";
 export const useAuthStore = create<AuthState>((set, get) => ({
   email: '',
   password: '',
