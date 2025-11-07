@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { HomeIcon, HistoryIcon, RocketIcon } from "lucide-react"
 import ThemeToggle from "@/src/utils/themeToggle"
 import { motion, AnimatePresence } from "framer-motion"
+import { MotionSpan } from "../lib/utils"
 
 
 export default function LayoutHeader() {
@@ -32,9 +33,9 @@ export default function LayoutHeader() {
 
 
   const toggleRoute = () => {
-    if(isMealHistory || isMovieHistory) window.history.back()
-    else if(isMealPlanner) window.location.href = routes.mealhistory
-    else if(isMoviePlanner) window.location.href = routes.moviehistory
+    if (isMealHistory || isMovieHistory) window.history.back()
+    else if (isMealPlanner) window.location.href = routes.mealhistory
+    else if (isMoviePlanner) window.location.href = routes.moviehistory
     else window.location.href = routes.home
   }
 
@@ -78,7 +79,7 @@ export default function LayoutHeader() {
         "
       >
         <AnimatePresence mode="wait">
-          <motion.span
+          <MotionSpan
             key={isMealHistory || isMovieHistory ? 'back' : 'history'}
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -97,7 +98,7 @@ export default function LayoutHeader() {
                 History
               </>
             )}
-          </motion.span>
+          </MotionSpan>
         </AnimatePresence>
       </Button>}
 

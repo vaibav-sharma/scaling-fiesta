@@ -20,16 +20,16 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Trash2, Eye } from 'lucide-react'
 import { toast } from 'sonner'
-import { getAllMeals, deleteMeal } from '@/src/utils/mealDB'
+import { getAllMeals, deleteMeal, MealEntry } from '@/src/utils/mealDB'
 
-type StoredMeal = {
-    id: number | string
-    data: any
-    createdAt?: number
-}
+// type StoredMeal = {
+//     id: number | string
+//     data: any
+//     timestamp?: number
+// }
 
 export default function MealHistoryTable() {
-    const [meals, setMeals] = useState<StoredMeal[]>([])
+    const [meals, setMeals] = useState<MealEntry[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [expanded, setExpanded] = useState<Record<string, boolean>>({})
@@ -39,7 +39,7 @@ export default function MealHistoryTable() {
         try {
             setLoading(true)
             const items = await getAllMeals()
-            const sorted = items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+            const sorted = items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
             setMeals(sorted)
         } catch (err: any) {
             console.error('Failed to load meals:', err)
@@ -114,8 +114,8 @@ export default function MealHistoryTable() {
                                                     <TableCell className="break-words max-w-[100px]">{data.dietType || '-'}</TableCell>
                                                     <TableCell className="break-words max-w-[120px]">{data.cuisine || '-'}</TableCell>
                                                     <TableCell className="text-sm text-muted-foreground break-words max-w-[140px]">
-                                                        {row.createdAt
-                                                            ? new Date(row.createdAt).toLocaleString()
+                                                        {row.timestamp
+                                                            ? new Date(row.timestamp).toLocaleString()
                                                             : '—'}
                                                     </TableCell>
                                                     <TableCell className="text-right">
@@ -123,14 +123,14 @@ export default function MealHistoryTable() {
                                                             <Button
                                                                 size="sm"
                                                                 variant="ghost"
-                                                                onClick={() => toggleExpand(id)}
+                                                                onClick={() => id !== undefined && toggleExpand(id)}
                                                             >
                                                                 <Eye className="w-4 h-4" />
                                                             </Button>
                                                             <Button
                                                                 size="sm"
                                                                 variant="destructive"
-                                                                onClick={() => handleDelete(id)}
+                                                                onClick={() => id !== undefined && handleDelete(id)}
                                                             >
                                                                 <Trash2 className="w-4 h-4 text-foreground" />
                                                             </Button>
@@ -168,19 +168,19 @@ export default function MealHistoryTable() {
                                             <div>
                                                 <p className="font-semibold text-base">{mealName}</p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {row.createdAt
-                                                        ? new Date(row.createdAt).toLocaleDateString()
+                                                    {row.timestamp
+                                                        ? new Date(row.timestamp).toLocaleDateString()
                                                         : '—'}
                                                 </p>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button size="icon" variant="ghost" onClick={() => toggleExpand(id)}>
+                                                <Button size="icon" variant="ghost" onClick={() => id !== undefined && toggleExpand(id)}>
                                                     <Eye className="w-4 h-4" />
                                                 </Button>
                                                 <Button
                                                     size="icon"
                                                     variant="destructive"
-                                                    onClick={() => handleDelete(id)}
+                                                    onClick={() => id !== undefined && handleDelete(id)}
                                                 >
                                                     <Trash2 className="w-4 h-4 text-foreground" />
                                                 </Button>

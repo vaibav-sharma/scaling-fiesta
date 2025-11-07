@@ -13,3 +13,4 @@ import type { HTMLAttributes } from "react"
 type MotionDivProps = MotionProps & HTMLAttributes<HTMLDivElement>
 
 export const MotionDiv: React.FC<MotionDivProps> = motion.div
+export const MotionSpan: React.FC<MotionDivProps> = motion.span

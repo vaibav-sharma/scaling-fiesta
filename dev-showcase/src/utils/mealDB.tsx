@@ -1,4 +1,5 @@
 // src/utils/mealDB.ts
+
 export interface MealEntry {
   id?: number
   timestamp: number
@@ -51,6 +52,21 @@ export const clearAllMeals = async (): Promise<void> => {
     const tx = db.transaction("meals", "readwrite")
     const store = tx.objectStore("meals")
     const request = store.clear()
+
+    request.onsuccess = () => resolve()
+    request.onerror = () => reject(request.error)
+  })
+}
+
+/**
+ * 🗑 Delete a specific meal by ID
+ */
+export const deleteMeal = async (id: number | string): Promise<void> => {
+  const db = await openMealDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("meals", "readwrite")
+    const store = tx.objectStore("meals")
+    const request = store.delete(Number(id)) // ensure number type for keyPath 'id'
 
     request.onsuccess = () => resolve()
     request.onerror = () => reject(request.error)
