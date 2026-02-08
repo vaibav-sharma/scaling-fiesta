@@ -44,6 +44,11 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "COMPLETE_OAUTH_CODE.ts",
+    "BACKEND_OAUTH_GUIDE.py",
+    "**/OAUTH_*.md",
+    "**/README_OAUTH.md",
+    "**/IMPLEMENTATION_STEPS.md"
   ]
 }
