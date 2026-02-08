@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { HomeIcon, HistoryIcon, RocketIcon } from "lucide-react"
 import ThemeToggle from "@/src/utils/themeToggle"
+import LogoutButton from "@/src/components/ui/logout"
 import { motion, AnimatePresence } from "framer-motion"
 import { MotionSpan } from "../lib/utils"
 
@@ -33,10 +34,10 @@ export default function LayoutHeader() {
 
 
   const toggleRoute = () => {
-    if (isMealHistory || isMovieHistory) window.history.back()
-    else if (isMealPlanner) window.location.href = routes.mealhistory
-    else if (isMoviePlanner) window.location.href = routes.moviehistory
-    else window.location.href = routes.home
+    if (isMealHistory || isMovieHistory) router.back()
+    else if (isMealPlanner) router.push(routes.mealhistory)
+    else if (isMoviePlanner) router.push(routes.moviehistory)
+    else router.push(routes.home)
   }
 
   return (
@@ -58,7 +59,7 @@ export default function LayoutHeader() {
         variant="ghost"
         size="icon"
         aria-label="Go home"
-        onClick={() => window.location.href = routes.home}
+        onClick={() => router.push(routes.home)}
         className="hover:bg-primary/10"
       >
         <HomeIcon className="w-5 h-5 text-foreground" />
@@ -102,8 +103,11 @@ export default function LayoutHeader() {
         </AnimatePresence>
       </Button>}
 
-      {/* Theme Toggle */}
-      <ThemeToggle />
+      {/* Right side controls */}
+      <div className="flex items-center gap-3">
+        <LogoutButton />
+        <ThemeToggle />
+      </div>
     </header>
   )
 }

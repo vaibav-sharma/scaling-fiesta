@@ -66,25 +66,31 @@ export default function LoginPage() {
 
     return (
         <div className="grid lg:grid-cols-2 overflow-hidden min-h-screen">
-            {/* Left side - Image */}
-            <div className="relative hidden lg:flex flex-col bg-muted text-white dark:border-r overflow-hidden">
-                <Image
-                    src="/homepage.svg"
-                    alt="Background illustration"
-                    fill
-                    priority
-                    className="object-cover"
-                />
-
-                {/* Foreground content */}
-                <div className="relative z-10 flex flex-col justify-between h-full p-10">
-                    <div className="flex items-center text-lg font-medium">⚡ Dev Showcase</div>
-                    <blockquote className="space-y-2">
-                        <p className="text-lg">
-                            "Building modern, modular interfaces with Next.js and shadcn/ui."
-                        </p>
-                        <footer className="text-sm">– Your Name</footer>
-                    </blockquote>
+            {/* Left side */}
+            <div className="hidden lg:flex flex-col justify-center p-8 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+                <div>
+                    <h1 className="text-4xl font-bold mb-6">Welcome Back</h1>
+                    <p className="text-lg mb-8 opacity-90">
+                        Sign in to access your personalized dashboard and manage your preferences securely.
+                    </p>
+                    <ul className="space-y-4 text-sm">
+                        <li className="flex items-center gap-3">
+                            <span className="text-2xl">✓</span>
+                            <span>Secure OAuth authentication</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="text-2xl">✓</span>
+                            <span>One-click sign in with Google</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="text-2xl">✓</span>
+                            <span>Protected user data & privacy</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="text-2xl">✓</span>
+                            <span>Automatic session management</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
 

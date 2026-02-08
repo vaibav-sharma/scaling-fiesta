@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Sign In - Mock Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .left-side {
+            color: white;
+        }
+
+        .left-side h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .left-side p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .features {
+            list-style: none;
+        }
+
+        .features li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .login-card p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #ccc;
+        }
+
+        .divider span {
+            flex: 1;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider p {
+            padding: 0 15px;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            transition: all 0.3s;
+        }
+
+        .oauth-btn:hover {
+            background: #f9f9f9;
+            border-color: #bbb;
+            transform: translateY(-1px);
+        }
+
+        .oauth-btn.google {
+            border-color: #ddd;
+        }
+
+        .oauth-btn.google:hover {
+            background: #f8f8f8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .oauth-btn.github {
+            border-color: #333;
+        }
+
+        .oauth-btn.github:hover {
+            background: #f0f0f0;
+        }
+
+        .guest-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #667eea;
+            border: 1px solid #667eea;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .guest-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .oauth-loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .left-side {
+                text-align: center;
+            }
+
+            .left-side h1 {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Side -->
+        <div class="left-side">
+            <h1>Welcome Back</h1>
+            <p>Sign in to access your personalized dashboard and manage your preferences.</p>
+            <ul class="features">
+                <li>Secure OAuth authentication</li>
+                <li>One-click sign in with Google</li>
+                <li>Protected user data & privacy</li>
+                <li>Automatic session management</li>
+            </ul>
+        </div>
+
+        <!-- Right Side - Login Card -->
+        <div class="login-card">
+            <h2>Sign in</h2>
+            <p>to continue to your dashboard</p>
+
+            <!-- Traditional Login Form -->
+            <form id="emailForm" onsubmit="handleEmailLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="you@example.com"
+                        required
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="••••••••"
+                        required
+                    />
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Sign in
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="divider">
+                <span></span>
+                <p>Or continue with</p>
+                <span></span>
+            </div>
+
+            <!-- OAuth Buttons -->
+            <div class="oauth-buttons">
+                <button type="button" class="oauth-btn google" onclick="handleGoogleSignIn()">
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path fill="#1F2937" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#1F2937" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#1F2937" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#1F2937" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Sign in with Google
+                </button>
+
+                <button type="button" class="oauth-btn github" onclick="handleGithubSignIn()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v 3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    Sign in with GitHub
+                </button>
+            </div>
+
+            <!-- Guest Mode -->
+            <button type="button" class="guest-btn" onclick="handleGuestAccess()">
+                Continue as Guest
+            </button>
+
+            <!-- Loading State -->
+            <div class="oauth-loading" id="oauthLoading">
+                <div class="spinner"></div>
+                <p>Redirecting to authentication...</p>
+            </div>
+
+            <!-- Status Messages -->
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        function handleEmailLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            showLoading();
+            
+            // Simulate API call
+            setTimeout(() => {
+                const statusDiv = document.getElementById('statusMessage');
+                statusDiv.className = 'status-message success';
+                statusDiv.textContent = '✓ Login successful! Redirecting...';
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            }, 1500);
+        }
+
+        function handleGoogleSignIn() {
+            showLoading();
+            
+            // In real implementation, this would redirect to:
+            // window.location.href = '/api/auth/signin/google';
+            
+            // For mock purposes:
+            setTimeout(() => {
+                const statusDiv = document.getElementById('statusMessage');
+                statusDiv.className = 'status-message success';
+                statusDiv.textContent = '✓ Google authentication successful! Redirecting...';
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            }, 2000);
+        }
+
+        function handleGithubSignIn() {
+            showLoading();
+            
+            // Similar to Google
+            setTimeout(() => {
+                const statusDiv = document.getElementById('statusMessage');
+                statusDiv.className = 'status-message success';
+                statusDiv.textContent = '✓ GitHub authentication successful! Redirecting...';
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            }, 2000);
+        }
+
+        function handleGuestAccess() {
+            showLoading();
+            
+            setTimeout(() => {
+                const statusDiv = document.getElementById('statusMessage');
+                statusDiv.className = 'status-message success';
+                statusDiv.textContent = '✓ Entering as guest. Redirecting...';
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard?mode=guest';
+                }, 1500);
+            }, 1000);
+        }
+
+        function showLoading() {
+            document.getElementById('emailForm').style.display = 'none';
+            document.getElementById('oauthLoading').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

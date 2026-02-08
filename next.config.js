@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // this replaces `next export`
+  // Removed output: 'export' to enable server-side features for OAuth
   images: {
-    unoptimized: true, // required when using next/image in static mode
+    unoptimized: true,
   },
 };
 
