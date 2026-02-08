@@ -18,7 +18,7 @@ interface CustomSession extends Session {
   accessToken?: string
 }
 
-export const authOptions = {
+const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
