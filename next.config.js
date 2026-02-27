@@ -4,6 +4,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/clips',
+        destination: '/clips/index.html',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
