@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VidClip</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Vars ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0f;--surface:#16161a;--card:#1c1c22;--border:#2a2a34;
+  --accent:#e8ff47;--accent2:#ff6b47;--accent3:#47b4ff;--accent4:#b47fff;
+  --text:#f0f0f5;--muted:#6b6b80;--hover:#22222a;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(232,255,71,.05) 0%,transparent 70%);top:-150px;left:-150px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;width:400px;height:400px;background:radial-gradient(circle,rgba(71,180,255,.04) 0%,transparent 70%);bottom:0;right:-50px;pointer-events:none;z-index:0}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── Utility ── */
+.hidden{display:none!important}
+input,button{font-family:inherit}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ══════════════════════════════════════════
+   ONBOARDING SCREEN
+══════════════════════════════════════════ */
+#onboarding{
+  position:fixed;inset:0;background:var(--bg);z-index:500;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  animation:fadeUp .4s ease;
+}
+.ob-card{
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  width:100%;max-width:460px;overflow:hidden;
+}
+.ob-hero{
+  background:linear-gradient(135deg,#1a1a22 0%,#12121a 100%);
+  padding:32px 28px 24px;border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.ob-logo-wrap{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px}
+.ob-logo-mark{width:40px;height:40px;background:var(--accent);border-radius:12px;display:grid;place-items:center}
+.ob-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px}
+.ob-logo-text span{color:var(--accent)}
+.ob-tagline{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* receive-first hero */
+.ob-receive-hero{padding:20px 28px 16px;border-bottom:1px solid var(--border)}
+.ob-from-line{font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.ob-from-avatar{font-size:18px}
+.ob-from-name{color:var(--accent);font-weight:600}
+.ob-preview-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:4px;cursor:pointer;transition:border-color .2s}
+.ob-preview-card:hover{border-color:rgba(232,255,71,.3)}
+.ob-preview-thumb{aspect-ratio:16/9;overflow:hidden;background:#111;position:relative}
+.ob-preview-thumb img{width:100%;height:100%;object-fit:cover}
+.ob-preview-play{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.4);opacity:0;transition:opacity .2s}
+.ob-preview-card:hover .ob-preview-play{opacity:1}
+.ob-preview-info{padding:10px 12px}
+.ob-preview-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:2px}
+.ob-preview-ch{font-size:11px;color:var(--muted)}
+
+.ob-body{padding:24px 28px}
+.ob-section-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+
+/* avatar picker */
+.ob-avatar-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.ob-avatar-opt{
+  width:42px;height:42px;border-radius:12px;
+  background:var(--surface);border:2px solid var(--border);
+  font-size:20px;cursor:pointer;display:grid;place-items:center;
+  transition:border-color .15s,background .15s;
+}
+.ob-avatar-opt.picked{border-color:var(--accent);background:rgba(232,255,71,.08)}
+
+.ob-field{margin-bottom:16px}
+.ob-field label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px}
+.ob-input{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.ob-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,255,71,.1)}
+.ob-input::placeholder{color:var(--muted)}
+
+/* contacts in onboarding */
+.ob-contacts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.ob-contact-row{display:flex;gap:7px;align-items:center}
+.ob-contact-row .ob-input{flex:1;padding:9px 12px;font-size:13px}
+.ob-contact-del{background:transparent;border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;display:grid;place-items:center;transition:border-color .15s,color .15s;flex-shrink:0}
+.ob-contact-del:hover{border-color:var(--accent2);color:var(--accent2)}
+.ob-add-contact{background:transparent;border:1px dashed var(--border);color:var(--muted);border-radius:10px;padding:9px;width:100%;cursor:pointer;font-size:13px;transition:border-color .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.ob-add-contact:hover{border-color:var(--accent);color:var(--accent)}
+
+.ob-cta{
+  background:var(--accent);color:#0d0d0f;border:none;border-radius:12px;
+  padding:14px;width:100%;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;
+  cursor:pointer;transition:opacity .15s,transform .15s;margin-top:4px;
+}
+.ob-cta:hover{opacity:.88;transform:translateY(-1px)}
+.ob-cta:active{transform:scale(.98)}
+.ob-skip{display:block;text-align:center;margin-top:12px;font-size:12px;color:var(--muted);cursor:pointer;transition:color .15s}
+.ob-skip:hover{color:var(--text)}
+
+/* ══════════════════════════════════════════
+   RECEIVE SCREEN (incoming share)
+══════════════════════════════════════════ */
+#receive-screen{
+  position:fixed;inset:0;background:var(--bg);z-index:490;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  animation:fadeUp .4s ease;
+}
+.rc-card{
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  width:100%;max-width:460px;overflow:hidden;
+}
+.rc-from{
+  padding:20px 22px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.rc-avatar{font-size:32px;line-height:1}
+.rc-from-info{}
+.rc-from-label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.rc-from-name{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.rc-from-time{font-size:11px;color:var(--muted);margin-top:1px}
+.rc-video{padding:16px 20px}
+.rc-thumb{aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#111;position:relative;cursor:pointer;margin-bottom:12px}
+.rc-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.rc-thumb:hover img{transform:scale(1.04)}
+.rc-play-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;opacity:0;transition:opacity .2s}
+.rc-thumb:hover .rc-play-overlay{opacity:1}
+.rc-play-circle{width:52px;height:52px;background:var(--accent);border-radius:50%;display:grid;place-items:center}
+.rc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;line-height:1.4;margin-bottom:4px}
+.rc-channel{font-size:12px;color:var(--muted);margin-bottom:16px}
+.rc-actions{display:flex;gap:8px}
+.rc-btn{
+  flex:1;border:none;border-radius:12px;padding:12px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+  cursor:pointer;transition:opacity .15s,transform .15s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.rc-btn:hover{opacity:.88;transform:translateY(-1px)}
+.rc-btn.primary{background:var(--accent);color:#0d0d0f}
+.rc-btn.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.rc-add-contact{
+  margin:12px 20px 0;padding:12px 16px;
+  background:rgba(232,255,71,.06);border:1px solid rgba(232,255,71,.2);
+  border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.rc-add-contact-info{font-size:12px;color:var(--muted);line-height:1.5}
+.rc-add-contact-info strong{color:var(--text);display:block;font-size:13px;margin-bottom:1px}
+.rc-add-btn{
+  background:var(--accent);color:#0d0d0f;border:none;border-radius:8px;
+  padding:7px 12px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;
+  cursor:pointer;white-space:nowrap;transition:opacity .15s;
+}
+.rc-add-btn:hover{opacity:.85}
+.rc-add-btn.added{background:var(--surface);color:var(--muted);border:1px solid var(--border);pointer-events:none}
+.rc-footer{padding:16px 20px;border-top:1px solid var(--border);margin-top:12px}
+.rc-go-feed{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:10px;padding:10px;width:100%;font-size:13px;cursor:pointer;
+  transition:border-color .15s,color .15s;
+}
+.rc-go-feed:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ══════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════ */
+.app{max-width:1040px;margin:0 auto;padding:0 20px 100px;position:relative;z-index:1}
+
+/* ── Header ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:24px 0 28px;border-bottom:1px solid var(--border);margin-bottom:24px;gap:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:34px;height:34px;background:var(--accent);border-radius:10px;display:grid;place-items:center}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.5px}
+.logo-text span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:8px}
+.profile-chip{
+  display:flex;align-items:center;gap:7px;
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:5px 12px 5px 8px;cursor:pointer;transition:border-color .15s;
+}
+.profile-chip:hover{border-color:var(--accent)}
+.profile-chip .av{font-size:16px;line-height:1}
+.profile-chip .pname{font-size:12px;font-weight:500}
+.settings-btn{
+  background:var(--surface);border:1px solid var(--border);color:var(--muted);
+  width:34px;height:34px;border-radius:10px;cursor:pointer;display:grid;place-items:center;
+  transition:border-color .15s,color .15s;
+}
+.settings-btn:hover{border-color:var(--accent);color:var(--accent)}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 11px;font-size:11px;color:var(--muted);font-weight:500}
+.stat-chip strong{color:var(--text)}
+
+/* ── Add Bar ── */
+.add-section{margin-bottom:24px}
+.add-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.input-row{display:flex;gap:8px}
+.url-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+.url-input::placeholder{color:var(--muted)}
+.url-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,255,71,.1)}
+.add-btn{background:var(--accent);color:#0d0d0f;border:none;border-radius:12px;padding:12px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:transform .15s,opacity .15s;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.add-btn:hover{opacity:.88;transform:translateY(-1px)}
+.add-btn:active{transform:scale(.97)}
+.add-btn.loading{opacity:.6;pointer-events:none}
+.spinner{width:15px;height:15px;border:2px solid rgba(0,0,0,.3);border-top-color:#0d0d0f;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.add-btn.loading .spinner{display:block}
+.add-btn.loading .btn-ico{display:none}
+.source-hints{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.hint-chip{font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 9px;display:flex;align-items:center;gap:4px}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.s-yt{background:#ff3e3e}.s-vi{background:#19b7ea}.s-fb{background:#4267b2}
+
+/* ── Nav Tabs ── */
+.nav-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600;font-size:13px;padding:9px 16px 11px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.npill{background:var(--border);color:var(--muted);font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;transition:background .15s,color .15s}
+.nav-tab.active .npill{background:rgba(232,255,71,.15);color:var(--accent)}
+/* received tab special color */
+.nav-tab[data-sec="received"].active .npill{background:rgba(180,127,255,.15);color:var(--accent4)}
+.nav-tab[data-sec="received"].active{border-bottom-color:var(--accent4)}
+
+/* ── Filter Row ── */
+.filter-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap}
+.filter-tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px}
+.ftab{border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:500;font-size:12px;padding:5px 12px;border-radius:7px;cursor:pointer;transition:background .15s,color .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.ftab.active{background:var(--card);color:var(--text)}
+.fpill{font-size:10px;font-weight:700;background:var(--border);color:var(--muted);padding:1px 5px;border-radius:8px;transition:background .15s,color .15s}
+.ftab.active .fpill{background:rgba(232,255,71,.15);color:var(--accent)}
+.right-ctrl{display:flex;gap:7px;align-items:center}
+.search-wrap{position:relative}
+.search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search-input{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 11px 7px 32px;color:var(--text);font-size:13px;outline:none;width:165px;transition:border-color .2s,width .2s}
+.search-input:focus{border-color:var(--accent);width:205px}
+.search-input::placeholder{color:var(--muted)}
+.sort-grp{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:3px}
+.sort-btn{border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;padding:5px 9px;border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.sort-btn.active{background:var(--card);color:var(--text)}
+.mark-all-btn{border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:500;padding:6px 11px;border-radius:9px;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap}
+.mark-all-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:13px}
+
+/* ── Card ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;cursor:pointer;position:relative;animation:fadeUp .3s ease both}
+.card:hover{transform:translateY(-3px);border-color:rgba(232,255,71,.22);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.card.watched{border-color:rgba(107,107,128,.15)}
+.thumb-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--surface)}
+.thumb-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .3s,filter .3s}
+.card:hover .thumb-wrap img{transform:scale(1.04)}
+.card.watched .thumb-wrap img{filter:brightness(.58) saturate(.35)}
+.play-overlay{position:absolute;inset:0;background:rgba(0,0,0,.42);display:grid;place-items:center;opacity:0;transition:opacity .2s}
+.card:hover .play-overlay{opacity:1}
+.play-circle{width:46px;height:46px;background:var(--accent);border-radius:50%;display:grid;place-items:center;box-shadow:0 4px 20px rgba(232,255,71,.5)}
+.src-badge{position:absolute;top:7px;left:7px;background:rgba(0,0,0,.68);backdrop-filter:blur(6px);color:#fff;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;letter-spacing:.4px;text-transform:uppercase;display:flex;align-items:center;gap:4px}
+.new-badge{position:absolute;top:7px;right:7px;background:var(--accent);color:#0d0d0f;font-family:'Syne',sans-serif;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:20px}
+.watched-badge{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.58);backdrop-filter:blur(4px);border-radius:20px;padding:2px 7px 2px 5px;display:flex;align-items:center;gap:3px;font-size:9px;color:var(--muted);font-weight:500}
+.saved-ribbon{position:absolute;top:7px;right:7px;background:rgba(255,107,71,.92);color:#fff;font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:20px;display:flex;align-items:center;gap:3px}
+.from-ribbon{position:absolute;bottom:7px;left:7px;background:rgba(180,127,255,.85);backdrop-filter:blur(4px);color:#fff;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;display:flex;align-items:center;gap:4px;max-width:calc(100% - 14px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-body{padding:11px 13px 13px}
+.fb-note{margin-bottom:7px;background:rgba(66,103,178,.1);border:1px solid rgba(66,103,178,.25);border-radius:7px;padding:4px 8px;font-size:10px;color:#6b96e0;display:flex;align-items:center;gap:5px}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;line-height:1.45;margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card.watched .card-title{color:var(--muted)}
+.card-meta{display:flex;align-items:center;justify-content:space-between}
+.channel-name{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.card-actions{display:flex;gap:2px}
+.abtn{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;transition:background .15s,color .15s;display:grid;place-items:center}
+.abtn:hover{background:var(--hover);color:var(--text)}
+.abtn.del:hover{color:var(--accent2)}
+.abtn.starred{color:var(--accent2)}
+.abtn.linked{color:var(--accent3)}
+
+/* ── Share Sheet ── */
+.share-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.share-sheet-overlay.open{opacity:1;pointer-events:all}
+.share-sheet{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 16px 16px;width:100%;max-width:480px;overflow:hidden;transform:translateY(30px);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.share-sheet-overlay.open .share-sheet{transform:none}
+.ss-header{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+.ss-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:2px}
+.ss-sub{font-size:11px;color:var(--muted)}
+.ss-video-preview{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+.ss-thumb{width:64px;height:36px;border-radius:7px;overflow:hidden;flex-shrink:0;background:#111}
+.ss-thumb img{width:100%;height:100%;object-fit:cover}
+.ss-vid-title{font-size:12px;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4}
+.ss-contacts{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ss-contact-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:background .15s;border:1px solid transparent}
+.ss-contact-row:hover{background:var(--hover)}
+.ss-contact-row.already-sent{opacity:.6}
+.ss-contact-av{font-size:20px;width:36px;height:36px;background:var(--surface);border-radius:10px;display:grid;place-items:center;flex-shrink:0;border:1px solid var(--border)}
+.ss-contact-info{flex:1;min-width:0}
+.ss-contact-name{font-size:13px;font-weight:500}
+.ss-contact-status{font-size:11px;color:var(--muted);margin-top:1px}
+.ss-contact-status.sent-before{color:var(--accent2)}
+.ss-send-icon{color:var(--muted);flex-shrink:0}
+.ss-wa-badge{background:rgba(37,211,102,.15);color:#25d366;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;letter-spacing:.3px}
+.ss-no-contacts{text-align:center;padding:20px;color:var(--muted);font-size:13px}
+.ss-no-contacts button{margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12px;transition:border-color .15s,color .15s}
+.ss-no-contacts button:hover{border-color:var(--accent);color:var(--accent)}
+.ss-footer{padding:10px 14px 14px;display:flex;gap:7px}
+.ss-copy-btn{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:9px;font-size:12px;cursor:pointer;transition:border-color .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.ss-copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ss-close-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:9px 14px;font-size:12px;cursor:pointer;transition:border-color .15s,color .15s}
+.ss-close-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+
+/* ── Player Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:840px;overflow:hidden;transform:scale(.93) translateY(22px);transition:transform .28s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:none}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 10px;gap:10px;position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);z-index:1}
+.modal-info{flex:1;min-width:0}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;line-height:1.4;margin-bottom:2px}
+.modal-channel{font-size:11px;color:var(--muted)}
+.modal-acts{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.mabtn{background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;padding:6px 11px;border-radius:8px;font-size:11px;font-weight:500;transition:border-color .15s,color .15s;display:flex;align-items:center;gap:4px}
+.mabtn:hover{border-color:var(--accent);color:var(--accent)}
+.mabtn.on{border-color:var(--accent2);color:var(--accent2)}
+.close-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;transition:background .15s,color .15s}
+.close-btn:hover{background:var(--hover);color:var(--text)}
+.player-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+.player-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+/* embed fallback */
+.embed-fallback{aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0a0c;position:relative;overflow:hidden}
+.embed-fallback-blur{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(14px) brightness(.2) saturate(.3);transform:scale(1.1)}
+.embed-fallback-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center;padding:28px 20px}
+.embed-fallback-icon{width:56px;height:56px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.embed-fallback-head{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+.embed-fallback-sub{font-size:12px;color:var(--muted);line-height:1.65;max-width:360px}
+.embed-fallback-sub strong{color:rgba(232,255,71,.75)}
+.embed-watch-btn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:12px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:transform .15s,opacity .15s;margin-top:4px}
+.embed-watch-btn:hover{opacity:.85;transform:translateY(-1px)}
+.embed-watch-btn.yt{background:#ff0000;color:#fff}
+.embed-watch-btn.vi{background:#19b7ea;color:#fff}
+.embed-fallback-hint{font-size:11px;color:var(--muted)}
+/* fb player */
+.fb-player-wrap{background:#18191a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;min-height:340px}
+.fb-player-wrap iframe{width:100%;max-width:720px;height:400px;border:none;border-radius:10px}
+.fb-player-note{font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
+.fb-open-big{background:#4267b2;color:#fff;border:none;border-radius:10px;padding:9px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;margin-top:8px;transition:opacity .15s}
+.fb-open-big:hover{opacity:.85}
+
+/* ── Settings Panel ── */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.settings-overlay.open{opacity:1;pointer-events:all}
+.settings-panel{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;transform:scale(.94);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.settings-overlay.open .settings-panel{transform:none}
+.sp-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+.sp-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.sp-body{padding:20px 18px}
+.sp-section{margin-bottom:22px}
+.sp-section-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.sp-avatar-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.sp-avatar-opt{width:40px;height:40px;border-radius:10px;background:var(--surface);border:2px solid var(--border);font-size:18px;cursor:pointer;display:grid;place-items:center;transition:border-color .15s,background .15s}
+.sp-avatar-opt.picked{border-color:var(--accent);background:rgba(232,255,71,.08)}
+.sp-field{margin-bottom:12px}
+.sp-field label{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-bottom:5px}
+.sp-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s}
+.sp-input:focus{border-color:var(--accent)}
+.sp-input::placeholder{color:var(--muted)}
+.sp-contacts{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.sp-contact-row{display:flex;gap:6px;align-items:center}
+.sp-contact-row .sp-input{flex:1;padding:8px 11px;font-size:12px}
+.sp-del-btn{background:transparent;border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;display:grid;place-items:center;transition:border-color .15s,color .15s;flex-shrink:0}
+.sp-del-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.sp-add-contact{background:transparent;border:1px dashed var(--border);color:var(--muted);border-radius:9px;padding:8px;width:100%;cursor:pointer;font-size:12px;transition:border-color .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.sp-add-contact:hover{border-color:var(--accent);color:var(--accent)}
+.sp-save-btn{background:var(--accent);color:#0d0d0f;border:none;border-radius:10px;padding:11px;width:100%;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .15s,transform .15s;margin-top:4px}
+.sp-save-btn:hover{opacity:.88;transform:translateY(-1px)}
+
+/* ── Received grouped by sender ── */
+.sender-group{margin-bottom:28px}
+.sender-group-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sender-group-av{font-size:22px}
+.sender-group-name{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
+.sender-group-count{font-size:11px;color:var(--muted);margin-left:2px}
+
+/* ── States ── */
+.empty-state{text-align:center;padding:60px 20px;grid-column:1/-1}
+.empty-icon{width:52px;height:52px;background:var(--surface);border:1px solid var(--border);border-radius:14px;display:grid;place-items:center;margin:0 auto 14px;color:var(--muted)}
+.empty-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:5px}
+.empty-sub{color:var(--muted);font-size:12px;line-height:1.6}
+.no-results{text-align:center;padding:44px;color:var(--muted);font-size:13px;grid-column:1/-1}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:600;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.tdot{width:7px;height:7px;border-radius:50%}
+.toast.success .tdot{background:var(--accent)}
+.toast.error   .tdot{background:var(--accent2)}
+.toast.info    .tdot{background:var(--accent3)}
+
+@media(max-width:640px){
+  .input-row{flex-direction:column}
+  .filter-row{flex-direction:column;align-items:stretch}
+  .right-ctrl{flex-wrap:wrap}
+  .search-input,.search-input:focus{width:100%}
+  .modal-acts .mabtn span{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="onboarding" class="hidden">
+  <div class="ob-card">
+    <!-- filled dynamically -->
+  </div>
+</div>
+
+<!-- ══ RECEIVE SCREEN ══ -->
+<div id="receive-screen" class="hidden">
+  <div class="rc-card">
+    <!-- filled dynamically -->
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div class="app" id="main-app" style="display:none">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+          <rect x="1" y="1" width="15" height="15" rx="4" fill="#0d0d0f"/>
+          <path d="M6.5 5.5l6 3-6 3V5.5z" fill="#e8ff47"/>
+        </svg>
+      </div>
+      <div class="logo-text">Vid<span>Clip</span></div>
+    </div>
+    <div class="header-right">
+      <div class="stat-chip"><strong id="st-new">0</strong> new</div>
+      <div class="stat-chip"><strong id="st-saved">0</strong> saved</div>
+      <div class="profile-chip" onclick="openSettings()">
+        <span class="av" id="hdr-avatar">😎</span>
+        <span class="pname" id="hdr-name">You</span>
+      </div>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.6 2.6l1.1 1.1M11.3 11.3l1.1 1.1M2.6 12.4l1.1-1.1M11.3 3.7l1.1-1.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="add-section">
+    <div class="add-label">Add a video</div>
+    <div class="input-row">
+      <input class="url-input" id="urlInput" type="url" placeholder="Paste a YouTube, Vimeo, or Facebook link…" autocomplete="off">
+      <button class="add-btn" id="addBtn" onclick="handleAdd()">
+        <svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 2v10M2 7h10" stroke="#0d0d0f" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="spinner"></div>
+        Add
+      </button>
+    </div>
+    <div class="source-hints">
+      <div class="hint-chip"><div class="sdot s-yt"></div>YouTube</div>
+      <div class="hint-chip"><div class="sdot s-vi"></div>Vimeo</div>
+      <div class="hint-chip"><div class="sdot s-fb"></div>Facebook</div>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-sec="feed"    onclick="setSection('feed',this)">Feed <span class="npill" id="np-feed">0</span></button>
+    <button class="nav-tab" data-sec="saved"   onclick="setSection('saved',this)">♥ Saved <span class="npill" id="np-saved">0</span></button>
+    <button class="nav-tab" data-sec="shared"  onclick="setSection('shared',this)">↗ Shared <span class="npill" id="np-shared">0</span></button>
+    <button class="nav-tab" data-sec="watched" onclick="setSection('watched',this)">✓ Watched <span class="npill" id="np-watched">0</span></button>
+    <button class="nav-tab" data-sec="received" onclick="setSection('received',this)">📨 Received <span class="npill" id="np-received">0</span></button>
+  </div>
+
+  <div class="filter-row">
+    <div class="filter-tabs">
+      <button class="ftab active" data-f="all"      onclick="setFilter('all',this)">All <span class="fpill" id="fp-all">0</span></button>
+      <button class="ftab"        data-f="youtube"  onclick="setFilter('youtube',this)"><div class="sdot s-yt" style="width:7px;height:7px;border-radius:50%"></div>YT <span class="fpill" id="fp-yt">0</span></button>
+      <button class="ftab"        data-f="vimeo"    onclick="setFilter('vimeo',this)"><div class="sdot s-vi" style="width:7px;height:7px;border-radius:50%"></div>Vi <span class="fpill" id="fp-vi">0</span></button>
+      <button class="ftab"        data-f="facebook" onclick="setFilter('facebook',this)"><div class="sdot s-fb" style="width:7px;height:7px;border-radius:50%"></div>FB <span class="fpill" id="fp-fb">0</span></button>
+    </div>
+    <div class="right-ctrl">
+      <div class="search-wrap">
+        <svg class="search-ico" width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <circle cx="5.5" cy="5.5" r="4" stroke="#6b6b80" stroke-width="1.3"/>
+          <path d="M9 9l2.5 2.5" stroke="#6b6b80" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <input class="search-input" id="searchInput" placeholder="Search…" oninput="renderGrid()">
+      </div>
+      <div class="sort-grp">
+        <button class="sort-btn active" onclick="setSort('newest',this)">New</button>
+        <button class="sort-btn" onclick="setSort('oldest',this)">Old</button>
+      </div>
+      <button class="mark-all-btn" id="markAllBtn" onclick="markAllWatched()">Mark all watched</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- ══ SHARE SHEET ══ -->
+<div class="share-sheet-overlay" id="ssOverlay" onclick="ssOverlayClick(event)">
+  <div class="share-sheet" id="shareSheet">
+    <div class="ss-header">
+      <div class="ss-title">Share Video</div>
+      <div class="ss-sub" id="ss-sub">Pick someone from your speed dials</div>
+    </div>
+    <div class="ss-video-preview" id="ss-preview"></div>
+    <div class="ss-contacts" id="ss-contacts"></div>
+    <div class="ss-footer">
+      <button class="ss-copy-btn" onclick="ssCopyLink()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <rect x="4" y="4" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M8 4V2.5A1.5 1.5 0 006.5 1H2.5A1.5 1.5 0 001 2.5v4A1.5 1.5 0 002.5 8H4" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        Copy link
+      </button>
+      <button class="ss-close-btn" onclick="closeShareSheet()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PLAYER MODAL ══ -->
+<div class="modal-overlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-info">
+        <div class="modal-title"   id="m-title">—</div>
+        <div class="modal-channel" id="m-channel">—</div>
+      </div>
+      <div class="modal-acts">
+        <button class="mabtn" id="m-save" onclick="modalSave()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M6 1l1.3 2.6L10 4l-2.1 2 .5 2.9L6 7.7 3.6 9 4.1 6 2 4l2.7-.4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" id="m-star"/>
+          </svg>
+          <span id="m-save-lbl">Save</span>
+        </button>
+        <button class="mabtn" onclick="openShareSheetForModal()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="9.5" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"/>
+            <circle cx="9.5" cy="9.5" r="1.5" stroke="currentColor" stroke-width="1.1"/>
+            <circle cx="2.5" cy="6"   r="1.5" stroke="currentColor" stroke-width="1.1"/>
+            <path d="M4 5.3L8 3.2M4 6.7l4 2.1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+          <span>Share</span>
+        </button>
+        <button class="mabtn" onclick="modalOpenExternal()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M7 1h4v4M11 1L5.5 6.5M4 2H2v8h8V8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Open</span>
+        </button>
+        <button class="close-btn" onclick="closeModal()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="player-box"></div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="settings-overlay" id="settingsOverlay" onclick="settingsOverlayClick(event)">
+  <div class="settings-panel">
+    <div class="sp-header">
+      <div class="sp-title">Settings</div>
+      <button class="close-btn" onclick="closeSettings()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sp-body">
+      <div class="sp-section">
+        <div class="sp-section-label">Your Profile</div>
+        <div class="sp-avatar-row" id="sp-avatars"></div>
+        <div class="sp-field">
+          <label>Your name</label>
+          <input class="sp-input" id="sp-name" placeholder="Rahul">
+        </div>
+      </div>
+      <div class="sp-section">
+        <div class="sp-section-label">Speed Dials (up to 5)</div>
+        <div class="sp-contacts" id="sp-contacts-list"></div>
+        <button class="sp-add-contact" onclick="spAddContact()">+ Add contact</button>
+      </div>
+      <button class="sp-save-btn" onclick="saveSettings()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"><div class="tdot"></div><span id="toast-msg"></span></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG — change this to your actual domain path
+// ══════════════════════════════════════════════════════
+// const APP_URL = 'https://yourdomain.com/clips';
+const APP_URL = window.location.origin + '/clips';
+// ══════════════════════════════════════════════════════
+// STORAGE KEYS
+// ══════════════════════════════════════════════════════
+const K_PROFILE  = 'vc_profile_v1';
+const K_VIDEOS   = 'vc_videos_v1';
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let profile       = null;   // { name, avatar, contacts:[{id,name,phone}] }
+let videos        = [];
+let activeSection = 'feed';
+let activeFilter  = 'all';
+let sortOrder     = 'newest';
+let currentUid    = null;   // modal
+let shareUid      = null;   // share sheet
+
+const AVATARS = ['😎','😊','🤩','🥳','😄','🧑','👩','👨','🦸','🎭','🐱','🦊'];
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+function boot() {
+  loadProfile();
+  loadVideos();
+
+  const params = new URLSearchParams(location.search);
+  const vParam = params.get('v');
+
+  if (vParam) {
+    // Incoming share link
+    const payload = decodePayload(vParam);
+    if (payload) {
+      if (!profile) {
+        showOnboarding(payload);
+      } else {
+        showReceiveScreen(payload);
+      }
+      return;
+    }
+  }
+
+  if (!profile) {
+    showOnboarding(null);
+  } else {
+    showMainApp();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════════════════
+function loadProfile() {
+  try { profile = JSON.parse(localStorage.getItem(K_PROFILE)); } catch { profile = null; }
+}
+function saveProfile() {
+  localStorage.setItem(K_PROFILE, JSON.stringify(profile));
+}
+function loadVideos() {
+  try { videos = JSON.parse(localStorage.getItem(K_VIDEOS)) || []; } catch { videos = []; }
+}
+function saveVideos() {
+  localStorage.setItem(K_VIDEOS, JSON.stringify(videos));
+}
+
+// ══════════════════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════════════════
+let obPendingPayload = null;
+let obPickedAvatar   = AVATARS[0];
+
+function showOnboarding(incomingPayload) {
+  obPendingPayload = incomingPayload;
+  obPickedAvatar   = AVATARS[0];
+
+  const card = document.querySelector('#onboarding .ob-card');
+  let receiveHtml = '';
+
+  if (incomingPayload) {
+    const v = incomingPayload.video;
+    const f = incomingPayload.from;
+    receiveHtml = `
+      <div class="ob-receive-hero">
+        <div class="ob-from-line">
+          <span class="ob-from-avatar">${f.avatar||'😎'}</span>
+          <span><span class="ob-from-name">${esc(f.name)}</span> shared a video with you</span>
+        </div>
+        <div class="ob-preview-card" onclick="playPreview(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+          <div class="ob-preview-thumb">
+            <img src="${v.thumb||''}" onerror="this.style.display='none'">
+            <div class="ob-preview-play">
+              <div style="width:40px;height:40px;background:var(--accent);border-radius:50%;display:grid;place-items:center">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 4l8 4-8 4V4z" fill="#0d0d0f"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="ob-preview-info">
+            <div class="ob-preview-title">${esc(v.title)}</div>
+            <div class="ob-preview-ch">${esc(v.channel||v.type)}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  card.innerHTML = `
+    ${receiveHtml}
+    <div class="ob-hero" ${incomingPayload ? 'style="padding:20px 28px 16px"' : ''}>
+      ${!incomingPayload ? `
+        <div class="ob-logo-wrap">
+          <div class="ob-logo-mark">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <rect x="1" y="1" width="16" height="16" rx="4" fill="#0d0d0f"/>
+              <path d="M7 6l5 3-5 3V6z" fill="#e8ff47"/>
+            </svg>
+          </div>
+          <div class="ob-logo-text">Vid<span>Clip</span></div>
+        </div>
+        <div class="ob-tagline">Your personal video feed.<br>Save, watch & share with friends.</div>
+      ` : `<div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px">Quick setup to save & share back</div>
+           <div style="font-size:12px;color:var(--muted)">Takes 10 seconds. Just your name.</div>`}
+    </div>
+    <div class="ob-body">
+      <div class="ob-section-title">Pick your avatar</div>
+      <div class="ob-avatar-row" id="ob-avatar-row">
+        ${AVATARS.map((a,i)=>`<div class="ob-avatar-opt ${i===0?'picked':''}" onclick="obPickAvatar('${a}',this)">${a}</div>`).join('')}
+      </div>
+      <div class="ob-field">
+        <label>Your name</label>
+        <input class="ob-input" id="ob-name" placeholder="Enter your name…" autocomplete="off">
+      </div>
+      <div class="ob-section-title" style="margin-top:4px">Speed Dials <span style="font-size:10px;opacity:.5">(optional, add later)</span></div>
+      <div id="ob-contacts" class="ob-contacts"></div>
+      <button class="ob-add-contact" onclick="obAddContact()" id="ob-add-btn">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Add a contact
+      </button>
+      <button class="ob-cta" style="margin-top:16px" onclick="obSubmit()">
+        ${incomingPayload ? '✓ Save video & get started' : 'Get Started'}
+      </button>
+      ${incomingPayload ? '<span class="ob-skip" onclick="obSkip()">Skip — just watch the video</span>' : ''}
+    </div>`;
+
+  document.getElementById('onboarding').classList.remove('hidden');
+}
+
+function obPickAvatar(a, el) {
+  obPickedAvatar = a;
+  document.querySelectorAll('.ob-avatar-opt').forEach(x => x.classList.remove('picked'));
+  el.classList.add('picked');
+}
+
+let obContactCount = 0;
+function obAddContact() {
+  if (obContactCount >= 5) { toast('Max 5 speed dials', 'error'); return; }
+  obContactCount++;
+  const wrap = document.getElementById('ob-contacts');
+  const row = document.createElement('div');
+  row.className = 'ob-contact-row';
+  row.dataset.cid = 'c' + Date.now();
+  row.innerHTML = `
+    <input class="ob-input" placeholder="Name" style="flex:0 0 100px">
+    <input class="ob-input" placeholder="+91 phone (WhatsApp)" type="tel">
+    <button class="ob-contact-del" onclick="this.parentElement.remove();obContactCount--">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>`;
+  wrap.appendChild(row);
+}
+
+function obSubmit() {
+  const name = document.getElementById('ob-name').value.trim();
+  if (!name) { document.getElementById('ob-name').focus(); toast('Enter your name first', 'error'); return; }
+
+  const contacts = [];
+  document.querySelectorAll('#ob-contacts .ob-contact-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const cname  = inputs[0].value.trim();
+    const phone  = inputs[1].value.trim().replace(/\D/g,'');
+    if (cname) contacts.push({ id: row.dataset.cid || ('c'+Date.now()), name: cname, phone });
+  });
+
+  profile = { name, avatar: obPickedAvatar, contacts };
+  saveProfile();
+
+  document.getElementById('onboarding').classList.add('hidden');
+
+  if (obPendingPayload) {
+    importVideo(obPendingPayload);
+    showReceiveScreen(obPendingPayload);
+  } else {
+    showMainApp();
+  }
+}
+
+function obSkip() {
+  document.getElementById('onboarding').classList.add('hidden');
+  if (obPendingPayload) showReceiveScreen(obPendingPayload);
+}
+
+// ══════════════════════════════════════════════════════
+// RECEIVE SCREEN
+// ══════════════════════════════════════════════════════
+function showReceiveScreen(payload) {
+  const v = payload.video;
+  const f = payload.from;
+  const sentAt = payload.at ? new Date(payload.at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+
+  // Check if already in feed
+  const alreadyHave = videos.find(x => x.type === v.type && x.id === v.id);
+
+  // Check if sender is already a contact
+  const alreadyContact = profile && profile.contacts && profile.contacts.find(c => c.phone === f.phone);
+
+  const card = document.querySelector('#receive-screen .rc-card');
+  card.innerHTML = `
+    <div class="rc-from">
+      <div class="rc-avatar">${f.avatar||'😎'}</div>
+      <div class="rc-from-info">
+        <div class="rc-from-label">Shared with you</div>
+        <div class="rc-from-name">${esc(f.name)}</div>
+        ${sentAt ? `<div class="rc-from-time">${sentAt}</div>` : ''}
+      </div>
+    </div>
+    <div class="rc-video">
+      <div class="rc-thumb" onclick="openModalForVideo(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+        <img src="${v.thumb||''}" onerror="this.style.background='#111';this.style.display='none'">
+        <div class="rc-play-overlay">
+          <div class="rc-play-circle">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6 4l10 5-10 5V4z" fill="#0d0d0f"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="rc-title">${esc(v.title)}</div>
+      <div class="rc-channel">${esc(v.channel||v.type)}</div>
+      <div class="rc-actions">
+        <button class="rc-btn primary" id="rc-add-btn" onclick="rcAddToFeed()" ${alreadyHave?'style="opacity:.5;pointer-events:none"':''}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#0d0d0f" stroke-width="1.8" stroke-linecap="round"/></svg>
+          ${alreadyHave ? 'Already in feed' : 'Add to my feed'}
+        </button>
+        <button class="rc-btn secondary" onclick="openModalForVideo(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 3l8 4-8 4V3z" fill="currentColor"/></svg>
+          Play now
+        </button>
+      </div>
+    </div>
+    ${f.phone && !alreadyContact ? `
+    <div class="rc-add-contact">
+      <div class="rc-add-contact-info">
+        <strong>${esc(f.name)}</strong>
+        Add to speed dials to share videos back
+      </div>
+      <button class="rc-add-btn" id="rc-add-contact-btn" onclick="rcAddContact('${esc(f.name)}','${f.phone}','${f.avatar||'😎'}')">
+        + Add
+      </button>
+    </div>` : (f.phone && alreadyContact ? `
+    <div class="rc-add-contact" style="background:rgba(107,107,128,.08);border-color:var(--border)">
+      <div class="rc-add-contact-info" style="color:var(--muted)">
+        <strong style="color:var(--text)">${esc(f.name)}</strong>
+        Already in your speed dials ✓
+      </div>
+    </div>` : '')}
+    <div class="rc-footer">
+      <button class="rc-go-feed" onclick="rcGoToFeed()">Go to my feed →</button>
+    </div>`;
+
+  document.getElementById('receive-screen').classList.remove('hidden');
+  window._rcPayload = payload;
+  window._rcAdded   = !!alreadyHave;
+}
+
+function rcAddToFeed() {
+  if (!window._rcPayload) return;
+  importVideo(window._rcPayload);
+  const btn = document.getElementById('rc-add-btn');
+  if (btn) { btn.textContent = '✓ Added!'; btn.style.opacity = '.6'; btn.style.pointerEvents = 'none'; }
+  window._rcAdded = true;
+  toast('Added to your feed!', 'success');
+}
+
+function rcAddContact(name, phone, avatar) {
+  if (!profile) return;
+  if (!profile.contacts) profile.contacts = [];
+  if (profile.contacts.length >= 5) { toast('Max 5 speed dials', 'error'); return; }
+  if (!profile.contacts.find(c => c.phone === phone)) {
+    profile.contacts.push({ id: 'c'+Date.now(), name, phone, avatar });
+    saveProfile();
+  }
+  const btn = document.getElementById('rc-add-contact-btn');
+  if (btn) { btn.textContent = 'Added ✓'; btn.classList.add('added'); }
+  toast(name + ' added to speed dials!', 'success');
+}
+
+function rcGoToFeed() {
+  document.getElementById('receive-screen').classList.add('hidden');
+  showMainApp();
+  // clean URL
+  history.replaceState({}, '', location.pathname);
+}
+
+function openModalForVideo(v) {
+  // play a video object directly (not from main videos array)
+  currentUid = null;
+  document.getElementById('m-title').textContent   = v.title;
+  document.getElementById('m-channel').textContent = v.channel || v.type;
+  document.getElementById('m-save').classList.remove('on');
+  document.getElementById('m-save-lbl').textContent = 'Save';
+  renderPlayerBox(v);
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// ══════════════════════════════════════════════════════
+// IMPORT VIDEO from payload
+// ══════════════════════════════════════════════════════
+function importVideo(payload) {
+  const v = payload.video;
+  const f = payload.from;
+  // don't duplicate
+  if (videos.find(x => x.type === v.type && x.id === v.id)) return;
+  videos.unshift({
+    uid: Date.now(),
+    type: v.type, id: v.id, originalUrl: v.originalUrl || v.url,
+    title: v.title, channel: v.channel, thumb: v.thumb, url: v.url,
+    addedAt: Date.now(), watched: false, saved: false, shared: false,
+    receivedFrom: f.name, receivedFromAvatar: f.avatar || '😎', receivedAt: payload.at || Date.now()
+  });
+  saveVideos();
+}
+
+// ══════════════════════════════════════════════════════
+// MAIN APP
+// ══════════════════════════════════════════════════════
+function showMainApp() {
+  document.getElementById('main-app').style.display = '';
+  updateProfileChip();
+  renderGrid();
+}
+
+function updateProfileChip() {
+  if (!profile) return;
+  document.getElementById('hdr-avatar').textContent = profile.avatar || '😎';
+  document.getElementById('hdr-name').textContent   = profile.name || 'You';
+}
+
+// ══════════════════════════════════════════════════════
+// URL PARSING
+// ══════════════════════════════════════════════════════
+function parseUrl(raw) {
+  try {
+    const url = raw.trim();
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./,'');
+    let yt = u.searchParams.get('v');
+    if (!yt && host==='youtu.be')               yt=u.pathname.slice(1).split('?')[0];
+    if (!yt && u.pathname.includes('/shorts/'))  yt=u.pathname.split('/shorts/')[1].split('?')[0];
+    if (!yt && u.pathname.includes('/embed/'))   yt=u.pathname.split('/embed/')[1].split('?')[0];
+    if (!yt && u.pathname.includes('/live/'))    yt=u.pathname.split('/live/')[1].split('?')[0];
+    if (yt) return {type:'youtube',id:yt,originalUrl:url};
+    if (host.includes('vimeo')) { const m=u.pathname.match(/\/(\d+)/); if(m) return {type:'vimeo',id:m[1],originalUrl:url}; }
+    if (host.includes('facebook')||host==='fb.com'||host==='fb.watch') return {type:'facebook',id:url,originalUrl:url};
+    return null;
+  } catch { return null; }
+}
+
+function getThumb(type, id) {
+  if (type==='youtube') return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+  if (type==='vimeo')   return `https://vumbnail.com/${id}.jpg`;
+  return '';
+}
+function getWatchUrl(type,id,orig) {
+  if (type==='youtube') return `https://www.youtube.com/watch?v=${id}`;
+  if (type==='vimeo')   return `https://vimeo.com/${id}`;
+  return orig;
+}
+function getEmbedUrl(type, id) {
+  if (type==='youtube') { const o=encodeURIComponent(location.origin||'null'); return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&enablejsapi=1&origin=${o}`; }
+  if (type==='vimeo')   return `https://player.vimeo.com/video/${id}?autoplay=1`;
+  return null;
+}
+
+// ══════════════════════════════════════════════════════
+// FETCH META
+// ══════════════════════════════════════════════════════
+async function fetchMeta(url, type, id) {
+  if (type==='facebook') return {title:'Facebook Video',channel:'Facebook',thumb:''};
+  const ep = {
+    youtube:`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
+    vimeo:`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`
+  };
+  try {
+    const r = await fetch(ep[type]); if(!r.ok) throw 0;
+    const d = await r.json();
+    return {title:d.title||'Untitled',channel:d.author_name||'',thumb:type==='youtube'?getThumb('youtube',id):(d.thumbnail_url||getThumb('vimeo',id))};
+  } catch { return {title:type==='youtube'?'YouTube Video':'Vimeo Video',channel:'',thumb:getThumb(type,id)}; }
+}
+
+// ══════════════════════════════════════════════════════
+// ADD VIDEO
+// ══════════════════════════════════════════════════════
+async function handleAdd() {
+  const inp = document.getElementById('urlInput');
+  const btn = document.getElementById('addBtn');
+  const raw = inp.value.trim();
+  if (!raw) { toast('Paste a link first!','error'); return; }
+  const p = parseUrl(raw);
+  if (!p) { toast('Unsupported link — try YouTube, Vimeo, or Facebook','error'); return; }
+  const dupKey = p.type==='facebook'?p.originalUrl:p.id;
+  if (videos.find(v=>(v.type==='facebook'?v.originalUrl:v.id)===dupKey&&v.type===p.type)) { toast('Already in your feed!','error'); return; }
+  btn.classList.add('loading');
+  const meta = await fetchMeta(p.originalUrl, p.type, p.id);
+  btn.classList.remove('loading');
+  videos.unshift({
+    uid:Date.now(),type:p.type,id:p.id,originalUrl:p.originalUrl,
+    title:meta.title,channel:meta.channel,thumb:meta.thumb,
+    url:getWatchUrl(p.type,p.id,p.originalUrl),
+    addedAt:Date.now(),watched:false,saved:false,shared:false
+  });
+  saveVideos(); inp.value='';
+  renderGrid();
+  toast('Added — '+meta.title.slice(0,35)+(meta.title.length>35?'…':''),'success');
+}
+
+// ══════════════════════════════════════════════════════
+// SECTIONS / FILTER / SORT
+// ══════════════════════════════════════════════════════
+function setSection(s,el) {
+  activeSection=s;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('markAllBtn').style.display = s==='feed'?'':'none';
+  renderGrid();
+}
+function setFilter(f,el) {
+  activeFilter=f;
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderGrid();
+}
+function setSort(o,el) {
+  sortOrder=o;
+  document.querySelectorAll('.sort-btn').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderGrid();
+}
+
+// ══════════════════════════════════════════════════════
+// VIDEO ACTIONS
+// ══════════════════════════════════════════════════════
+function find(uid)             { return videos.find(v=>v.uid===uid); }
+function toggleSaved(uid,e)    { if(e)e.stopPropagation(); const v=find(uid);if(!v)return; v.saved=!v.saved; saveVideos();renderGrid(); toast(v.saved?'♥ Saved!':'Removed from saved',v.saved?'success':'info'); }
+function markNew(uid,e)        { if(e)e.stopPropagation(); const v=find(uid);if(!v)return; v.watched=false;delete v.watchedAt; saveVideos();renderGrid(); toast('Marked as new','info'); }
+function markAllWatched()      { let c=false; videos.forEach(v=>{if(!v.watched){v.watched=true;v.watchedAt=Date.now();c=true;}}); if(c){saveVideos();renderGrid();toast('All marked as watched','success');} }
+function delVideo(uid,e)       { if(e)e.stopPropagation(); videos=videos.filter(v=>v.uid!==uid); saveVideos();renderGrid(); toast('Removed','error'); }
+
+// ══════════════════════════════════════════════════════
+// SHARE PAYLOAD ENCODE / DECODE
+// ══════════════════════════════════════════════════════
+function encodePayload(video, fromProfile) {
+  const payload = {
+    video: {
+      type:    video.type,
+      id:      video.id,
+      title:   video.title,
+      channel: video.channel,
+      thumb:   video.thumb,
+      url:     video.url,
+      originalUrl: video.originalUrl
+    },
+    from: {
+      name:   fromProfile.name,
+      avatar: fromProfile.avatar,
+      phone:  fromProfile.contacts ? '' : '' // sender's own phone not stored, intentionally omitted
+    },
+    at: Date.now()
+  };
+  // Include sender phone if they have set their own phone in contacts (they might not)
+  // For the receiver to add them back, we embed the sender's profile
+  try {
+    const json    = JSON.stringify(payload);
+    const compressed = LZString.compressToEncodedURIComponent(json);
+    return compressed;
+  } catch { return null; }
+}
+
+function decodePayload(str) {
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(str);
+    return JSON.parse(json);
+  } catch { return null; }
+}
+
+function buildShareUrl(video) {
+  if (!profile) return null;
+  const code = encodePayload(video, profile);
+  if (!code) return null;
+  return APP_URL + '?v=' + code;
+}
+
+// ══════════════════════════════════════════════════════
+// SHARE SHEET
+// ══════════════════════════════════════════════════════
+function openShareSheet(uid, e) {
+  if (e) e.stopPropagation();
+  shareUid = uid;
+  const v = find(uid); if (!v) return;
+
+  // Preview
+  document.getElementById('ss-preview').innerHTML = `
+    <div class="ss-thumb"><img src="${v.thumb||''}" onerror="this.style.display='none'"></div>
+    <div class="ss-vid-title">${esc(v.title)}</div>`;
+
+  renderShareContacts(v);
+  document.getElementById('ssOverlay').classList.add('open');
+}
+
+function openShareSheetForModal() {
+  closeModal();
+  if (currentUid) { openShareSheet(currentUid, null); return; }
+}
+
+function renderShareContacts(v) {
+  const contacts = (profile && profile.contacts) || [];
+  const wrap = document.getElementById('ss-contacts');
+
+  if (!contacts.length) {
+    wrap.innerHTML = `<div class="ss-no-contacts">
+      No speed dials set up yet.
+      <button onclick="closeShareSheet();openSettings()">Add contacts in Settings</button>
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = contacts.map(c => {
+    const sentAt = v.sharedWith && v.sharedWith[c.id];
+    const sentLabel = sentAt ? `Sent ${relTime(sentAt)}` : (c.phone ? 'Send via WhatsApp' : 'Copy link');
+    return `
+    <div class="ss-contact-row ${sentAt?'already-sent':''}" onclick="sendToContact('${c.id}')">
+      <div class="ss-contact-av">${c.avatar||getContactAvatar(c.name)}</div>
+      <div class="ss-contact-info">
+        <div class="ss-contact-name">${esc(c.name)}</div>
+        <div class="ss-contact-status ${sentAt?'sent-before':''}">${sentLabel}</div>
+      </div>
+      ${c.phone ? '<div class="ss-wa-badge">WhatsApp</div>' : ''}
+      <div class="ss-send-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="11" cy="3" r="1.8" stroke="currentColor" stroke-width="1.2"/>
+          <circle cx="11" cy="11" r="1.8" stroke="currentColor" stroke-width="1.2"/>
+          <circle cx="3"  cy="7"  r="1.8" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M4.7 6.2L9.3 3.8M4.7 7.8l4.6 2.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getContactAvatar(name) {
+  return name ? name[0].toUpperCase() : '?';
+}
+
+function sendToContact(contactId) {
+  const v = find(shareUid); if (!v) return;
+  const c = profile.contacts.find(x => x.id === contactId); if (!c) return;
+
+  const shareUrl = buildShareUrl(v);
+  if (!shareUrl) { toast('Error building share link','error'); return; }
+
+  const msg = `${profile.avatar||'😎'} ${profile.name} shared a video with you!\n\n${v.title}\n${shareUrl}`;
+
+  // Mark as shared with this contact
+  if (!v.sharedWith) v.sharedWith = {};
+  v.sharedWith[contactId] = Date.now();
+  v.shared = true;
+  saveVideos();
+  renderShareContacts(v); // refresh statuses
+  renderGrid();
+
+  if (c.phone) {
+    const waUrl = `https://wa.me/${c.phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+    toast(`Opening WhatsApp for ${c.name}…`, 'info');
+  } else {
+    navigator.clipboard.writeText(shareUrl);
+    toast(`Link copied for ${c.name}`, 'success');
+  }
+}
+
+function ssCopyLink() {
+  const v = find(shareUid); if (!v) return;
+  const url = buildShareUrl(v);
+  if (!url) { toast('Error building link','error'); return; }
+  navigator.clipboard.writeText(url);
+  if (!v.shared) { v.shared = true; saveVideos(); renderGrid(); }
+  toast('Share link copied!', 'success');
+}
+
+function closeShareSheet() { document.getElementById('ssOverlay').classList.remove('open'); shareUid = null; }
+function ssOverlayClick(e)  { if (e.target===document.getElementById('ssOverlay')) closeShareSheet(); }
+
+// ══════════════════════════════════════════════════════
+// PLAYER MODAL
+// ══════════════════════════════════════════════════════
+function openModal(uid) {
+  const v = find(uid); if (!v) return;
+  currentUid = uid;
+  document.getElementById('m-title').textContent   = v.title;
+  document.getElementById('m-channel').textContent = v.channel||v.type;
+  syncSaveBtn(v);
+  renderPlayerBox(v);
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (!v.watched) { v.watched=true; v.watchedAt=Date.now(); saveVideos(); renderGrid(); }
+}
+
+function renderPlayerBox(v) {
+  const box = document.getElementById('player-box');
+  if (v.type==='facebook') {
+    const enc = encodeURIComponent(v.originalUrl||v.url);
+    box.innerHTML = `
+      <div class="fb-player-wrap">
+        <iframe src="https://www.facebook.com/plugins/video.php?href=${enc}&show_text=false&width=720&autoplay=true"
+          width="720" height="400" scrolling="no" frameborder="0" allowfullscreen
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+        <p class="fb-player-note">
+          If it doesn't load, you may need to be logged into Facebook.
+          <button class="fb-open-big" onclick="window.open(${JSON.stringify(v.originalUrl||v.url)},'_blank')">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M7 2h4v4M11 2L5 8M4 3H2v8h8V9" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Open on Facebook
+          </button>
+        </p>
+      </div>`;
+  } else {
+    const eUrl = getEmbedUrl(v.type, v.id);
+    const btnCls = v.type==='youtube'?'yt':'vi';
+    const tStyle = v.thumb ? `style="background-image:url('${v.thumb}')"` : '';
+    box.innerHTML = `
+      <div class="player-wrap" id="pw-${v.uid||'x'}">
+        <iframe src="${eUrl}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen
+          onerror="showEmbedFallback('${v.uid||'x'}')"></iframe>
+      </div>
+      <div class="embed-fallback" id="ef-${v.uid||'x'}" style="display:none">
+        <div class="embed-fallback-blur" ${tStyle}></div>
+        <div class="embed-fallback-content">
+          <div class="embed-fallback-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8v5M12 15.5v.5" stroke="#6b6b80" stroke-width="1.6" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="10" stroke="#6b6b80" stroke-width="1.3"/>
+            </svg>
+          </div>
+          <div class="embed-fallback-head">Embedding not allowed</div>
+          <div class="embed-fallback-sub">The video owner has disabled embedding for this video. You can still watch it directly.</div>
+          <button class="embed-watch-btn ${btnCls}" onclick="window.open('${esc(v.url)}','_blank')">
+            ${v.type==='youtube'?`<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l8 4-8 4V4z"/></svg>Watch on YouTube`:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 5.5l6 2.5-6 2.5V5.5z" fill="currentColor"/></svg>Watch on Vimeo`}
+          </button>
+          <div class="embed-fallback-hint">Opens in new tab</div>
+        </div>
+      </div>`;
+    scheduleEmbedCheck(v.uid||'x');
+  }
+}
+
+function syncSaveBtn(v) {
+  const btn = document.getElementById('m-save');
+  document.getElementById('m-save-lbl').textContent = v.saved?'Saved ♥':'Save';
+  btn.classList.toggle('on', !!v.saved);
+}
+function modalSave() {
+  if (!currentUid) return;
+  const v = find(currentUid); if(!v) return;
+  v.saved=!v.saved; saveVideos(); renderGrid(); syncSaveBtn(v);
+  toast(v.saved?'♥ Saved!':'Removed from saved', v.saved?'success':'info');
+}
+function modalOpenExternal() { const v=find(currentUid); if(v) window.open(v.url,'_blank'); }
+function overlayClick(e)     { if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  setTimeout(()=>{ document.getElementById('player-box').innerHTML=''; },300);
+  currentUid=null;
+}
+
+// embed error detection
+window.addEventListener('message',e=>{
+  try {
+    const d = typeof e.data==='string'?JSON.parse(e.data):e.data;
+    if (d&&d.event==='infoDelivery'&&d.info&&d.info.error) {
+      const code=d.info.error;
+      if ([100,101,150,5].includes(code)) showEmbedFallback(currentUid||'x');
+    }
+  } catch {}
+});
+let embedTimer=null;
+function scheduleEmbedCheck(uid) { clearTimeout(embedTimer); }
+function showEmbedFallback(uid) {
+  const pw=document.getElementById(`pw-${uid}`);
+  const ef=document.getElementById(`ef-${uid}`);
+  if(pw) pw.style.display='none';
+  if(ef) ef.style.display='flex';
+}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════
+let spPickedAvatar = null;
+function openSettings() {
+  if (!profile) { showOnboarding(null); return; }
+  spPickedAvatar = profile.avatar || AVATARS[0];
+  document.getElementById('sp-name').value = profile.name || '';
+  // avatars
+  document.getElementById('sp-avatars').innerHTML = AVATARS.map(a =>
+    `<div class="sp-avatar-opt ${a===spPickedAvatar?'picked':''}" onclick="spPickAvatar('${a}',this)">${a}</div>`
+  ).join('');
+  // contacts
+  renderSpContacts();
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function spPickAvatar(a,el) {
+  spPickedAvatar=a;
+  document.querySelectorAll('.sp-avatar-opt').forEach(x=>x.classList.remove('picked'));
+  el.classList.add('picked');
+}
+function renderSpContacts() {
+  const contacts = (profile && profile.contacts) || [];
+  document.getElementById('sp-contacts-list').innerHTML = contacts.map((c,i)=>`
+    <div class="sp-contact-row" data-idx="${i}">
+      <input class="sp-input" placeholder="Name"    value="${esc(c.name||'')}"  style="flex:0 0 110px">
+      <input class="sp-input" placeholder="+91..."   value="${esc(c.phone||'')}" type="tel">
+      <button class="sp-del-btn" onclick="spDelContact(${i})">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1l9 9M10 1L1 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </button>
+    </div>`).join('');
+}
+function spAddContact() {
+  if (!profile.contacts) profile.contacts=[];
+  if (profile.contacts.length>=5) { toast('Max 5 speed dials','error'); return; }
+  profile.contacts.push({ id:'c'+Date.now(), name:'', phone:'' });
+  renderSpContacts();
+}
+function spDelContact(i) {
+  profile.contacts.splice(i,1);
+  renderSpContacts();
+}
+function saveSettings() {
+  const name = document.getElementById('sp-name').value.trim();
+  if (!name) { document.getElementById('sp-name').focus(); toast('Enter your name','error'); return; }
+  const rows = document.querySelectorAll('#sp-contacts-list .sp-contact-row');
+  const contacts = [];
+  rows.forEach((row,i)=>{
+    const inputs = row.querySelectorAll('input');
+    const cname  = inputs[0].value.trim();
+    const phone  = inputs[1].value.trim().replace(/\D/g,'');
+    const old    = (profile.contacts||[])[i];
+    if (cname) contacts.push({ id:(old&&old.id)||'c'+Date.now(), name:cname, phone, avatar:old&&old.avatar||'😊' });
+  });
+  profile = { ...profile, name, avatar:spPickedAvatar, contacts };
+  saveProfile();
+  updateProfileChip();
+  closeSettings();
+  toast('Settings saved!','success');
+}
+function closeSettings()           { document.getElementById('settingsOverlay').classList.remove('open'); }
+function settingsOverlayClick(e)   { if(e.target===document.getElementById('settingsOverlay')) closeSettings(); }
+
+// ══════════════════════════════════════════════════════
+// RENDER GRID
+// ══════════════════════════════════════════════════════
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+
+  const newN     = videos.filter(v=>!v.watched).length;
+  const savedN   = videos.filter(v=>v.saved).length;
+  const receivedN= videos.filter(v=>v.receivedFrom).length;
+
+  document.getElementById('st-new').textContent    = newN;
+  document.getElementById('st-saved').textContent  = savedN;
+  document.getElementById('np-feed').textContent   = newN;
+  document.getElementById('np-saved').textContent  = savedN;
+  document.getElementById('np-shared').textContent = videos.filter(v=>v.shared).length;
+  document.getElementById('np-watched').textContent= videos.filter(v=>v.watched).length;
+  document.getElementById('np-received').textContent=receivedN;
+  document.getElementById('fp-all').textContent    = videos.length;
+  document.getElementById('fp-yt').textContent     = videos.filter(v=>v.type==='youtube').length;
+  document.getElementById('fp-vi').textContent     = videos.filter(v=>v.type==='vimeo').length;
+  document.getElementById('fp-fb').textContent     = videos.filter(v=>v.type==='facebook').length;
+
+  // Received section — grouped by sender
+  if (activeSection==='received') {
+    renderReceived(q);
+    return;
+  }
+
+  let list;
+  if      (activeSection==='feed')    list=videos.filter(v=>!v.watched);
+  else if (activeSection==='saved')   list=videos.filter(v=>v.saved);
+  else if (activeSection==='shared')  list=videos.filter(v=>v.shared);
+  else if (activeSection==='watched') list=videos.filter(v=>v.watched);
+  else list=[...videos];
+
+  if (activeFilter!=='all') list=list.filter(v=>v.type===activeFilter);
+  if (q) list=list.filter(v=>v.title.toLowerCase().includes(q)||(v.channel||'').toLowerCase().includes(q));
+  if (sortOrder==='oldest') list=[...list].reverse();
+
+  if (!videos.length) {
+    grid.innerHTML=`<div class="empty-state">
+      <div class="empty-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#6b6b80" stroke-width="1.3"/><path d="M9 8l7 4-7 4V8z" fill="#6b6b80"/></svg>
+      </div>
+      <div class="empty-title">Your feed is empty</div>
+      <div class="empty-sub">Paste a YouTube, Vimeo, or Facebook link above.<br>Or ask a friend to share one with you!</div>
+    </div>`; return;
+  }
+
+  if (!list.length && !q) {
+    const M={
+      feed:    ['✦','All caught up!','No unwatched videos. Add more or check Watched.'],
+      saved:   ['♥','Nothing saved yet','Tap the star on any video to save it here.'],
+      shared:  ['↗','Nothing shared yet','Share a video with a friend to track it here.'],
+      watched: ['○','Nothing watched yet','Videos you open will appear here.'],
+    }[activeSection]||['?','Empty',''];
+    grid.innerHTML=`<div class="empty-state">
+      <div class="empty-icon" style="font-size:18px;color:var(--muted)">${M[0]}</div>
+      <div class="empty-title">${M[1]}</div><div class="empty-sub">${M[2]}</div>
+    </div>`; return;
+  }
+  if (!list.length) { grid.innerHTML=`<div class="no-results">No results for "<strong>${esc(q)}</strong>"</div>`; return; }
+
+  const SRC={youtube:'YouTube',vimeo:'Vimeo',facebook:'Facebook'};
+  const SDOT={youtube:'s-yt',vimeo:'s-vi',facebook:'s-fb'};
+
+  grid.innerHTML=list.map((v,i)=>{
+    const isNew=!v.watched;
+    let badge='';
+    if(v.saved) badge=`<div class="saved-ribbon"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><path d="M4 1l.9 1.8 2 .3-1.45 1.4.35 2L4 5.6 2.2 6.5l.35-2L1.1 3.1l2-.3z"/></svg>Saved</div>`;
+    else if(isNew) badge=`<div class="new-badge">New</div>`;
+    else if(v.watched) badge=`<div class="watched-badge"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="#6b6b80" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Watched</div>`;
+
+    const fromRibbon = v.receivedFrom ? `<div class="from-ribbon">${v.receivedFromAvatar||'😎'} from ${esc(v.receivedFrom)}</div>` : '';
+    const fbNote = v.type==='facebook' ? `<div class="fb-note"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="#4267b2" stroke-width="1"/><path d="M5 4v3M5 3v.3" stroke="#4267b2" stroke-width="1" stroke-linecap="round"/></svg>May need FB login</div>` : '';
+    const tSrc = v.thumb||fbPH();
+
+    return `<div class="card ${v.watched?'watched':''}" onclick="openModal(${v.uid})" style="animation-delay:${Math.min(i,10)*.033}s">
+      <div class="thumb-wrap">
+        <img src="${tSrc}" alt="${esc(v.title)}" loading="lazy" onerror="this.src='${fbPH()}'">
+        <div class="play-overlay"><div class="play-circle"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 4l8 4-8 4V4z" fill="#0d0d0f"/></svg></div></div>
+        <div class="src-badge"><div class="sdot ${SDOT[v.type]}"></div>${SRC[v.type]}</div>
+        ${badge}${fromRibbon}
+      </div>
+      <div class="card-body">
+        ${fbNote}
+        <div class="card-title">${esc(v.title)}</div>
+        <div class="card-meta">
+          <div class="channel-name">${esc(v.channel||'—')}</div>
+          <div class="card-actions" onclick="event.stopPropagation()">
+            <button class="abtn ${v.saved?'starred':''}" title="${v.saved?'Unsave':'Save'}" onclick="toggleSaved(${v.uid},event)">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="${v.saved?'currentColor':'none'}"><path d="M6.5 1.5l1.3 2.7 3 .43-2.18 2.13.52 3L6.5 8.27 3.86 9.76l.52-3L2.2 4.63l3-.43z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="abtn" title="Share" onclick="openShareSheet(${v.uid},event)">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <circle cx="10" cy="2.5" r="1.5" stroke="${v.shared?'var(--accent3)':'currentColor'}" stroke-width="1.1"/>
+                <circle cx="10" cy="10.5" r="1.5" stroke="${v.shared?'var(--accent3)':'currentColor'}" stroke-width="1.1"/>
+                <circle cx="3"  cy="6.5"  r="1.5" stroke="${v.shared?'var(--accent3)':'currentColor'}" stroke-width="1.1"/>
+                <path d="M4.4 5.7L8.6 3.3M4.4 7.3l4.2 2.4" stroke="${v.shared?'var(--accent3)':'currentColor'}" stroke-width="1.1" stroke-linecap="round"/>
+              </svg>
+            </button>
+            ${v.watched?`<button class="abtn" title="Mark new" onclick="markNew(${v.uid},event)">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4 6.5l2 2L9 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}
+            <button class="abtn del" title="Delete" onclick="delVideo(${v.uid},event)">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 4h9M5 4V3h3v1M3.5 4l.8 6.5h4.4L9.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Received section — grouped by sender ──
+function renderReceived(q) {
+  const grid = document.getElementById('grid');
+  let received = videos.filter(v=>v.receivedFrom);
+  if (activeFilter!=='all') received=received.filter(v=>v.type===activeFilter);
+  if (q) received=received.filter(v=>v.title.toLowerCase().includes(q)||(v.channel||'').toLowerCase().includes(q));
+
+  if (!received.length) {
+    grid.innerHTML=`<div class="empty-state">
+      <div class="empty-icon" style="font-size:18px;color:var(--accent4)">📨</div>
+      <div class="empty-title">No received videos yet</div>
+      <div class="empty-sub">When someone shares a video link with you<br>and you add it, it appears here grouped by sender.</div>
+    </div>`; return;
+  }
+
+  // Group by sender
+  const groups = {};
+  received.forEach(v => {
+    const key = v.receivedFrom;
+    if (!groups[key]) groups[key] = { avatar: v.receivedFromAvatar||'😎', videos:[] };
+    groups[key].videos.push(v);
+  });
+
+  const SRC={youtube:'YouTube',vimeo:'Vimeo',facebook:'Facebook'};
+  const SDOT={youtube:'s-yt',vimeo:'s-vi',facebook:'s-fb'};
+
+  // Render as grouped sections inside the grid container
+  // Use a full-width wrapper per group
+  grid.style.display = 'block';
+  grid.innerHTML = Object.entries(groups).map(([sender, grp]) => `
+    <div class="sender-group">
+      <div class="sender-group-header">
+        <div class="sender-group-av">${grp.avatar}</div>
+        <div>
+          <div class="sender-group-name">${esc(sender)}</div>
+          <div class="sender-group-count">${grp.videos.length} video${grp.videos.length!==1?'s':''}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:13px">
+        ${grp.videos.map((v,i)=>{
+          const isNew=!v.watched;
+          let badge='';
+          if(isNew) badge=`<div class="new-badge">New</div>`;
+          else badge=`<div class="watched-badge"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="#6b6b80" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Watched</div>`;
+          return `<div class="card ${v.watched?'watched':''}" onclick="openModal(${v.uid})" style="animation-delay:${i*.04}s">
+            <div class="thumb-wrap">
+              <img src="${v.thumb||fbPH()}" loading="lazy" onerror="this.src='${fbPH()}'">
+              <div class="play-overlay"><div class="play-circle"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 4l8 4-8 4V4z" fill="#0d0d0f"/></svg></div></div>
+              <div class="src-badge"><div class="sdot ${SDOT[v.type]}"></div>${SRC[v.type]}</div>
+              ${badge}
+            </div>
+            <div class="card-body">
+              <div class="card-title">${esc(v.title)}</div>
+              <div class="card-meta">
+                <div class="channel-name">${esc(v.channel||'—')}</div>
+                <div class="card-actions" onclick="event.stopPropagation()">
+                  <button class="abtn ${v.saved?'starred':''}" title="Save" onclick="toggleSaved(${v.uid},event)">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="${v.saved?'currentColor':'none'}"><path d="M6.5 1.5l1.3 2.7 3 .43-2.18 2.13.52 3L6.5 8.27 3.86 9.76l.52-3L2.2 4.63l3-.43z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                  </button>
+                  <button class="abtn" title="Share back" onclick="openShareSheet(${v.uid},event)">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="10" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.1"/><circle cx="3" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M4.4 5.7L8.6 3.3M4.4 7.3l4.2 2.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                  </button>
+                  <button class="abtn del" title="Delete" onclick="delVideo(${v.uid},event)">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 4h9M5 4V3h3v1M3.5 4l.8 6.5h4.4L9.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+} 
+
+// reset grid display when leaving received
+const _origSetSection = setSection;
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function fbPH() {
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%2318191a'/%3E%3Ctext x='50%25' y='44%25' fill='%234267b2' font-size='46' font-family='sans-serif' text-anchor='middle'%3Ef%3C/text%3E%3Ctext x='50%25' y='72%25' fill='%236b6b80' font-size='11' font-family='sans-serif' text-anchor='middle'%3EFacebook Video%3C/text%3E%3C/svg%3E`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function relTime(ts) {
+  const diff = Date.now()-ts;
+  const mins = Math.floor(diff/60000);
+  if (mins<1)   return 'just now';
+  if (mins<60)  return `${mins}m ago`;
+  const hrs = Math.floor(mins/60);
+  if (hrs<24)   return `${hrs}h ago`;
+  return `${Math.floor(hrs/24)}d ago`;
+}
+
+function playPreview(v) {
+  openModalForVideo(v);
+}
+
+// ══════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════
+let tTimer;
+function toast(msg,type='success') {
+  const t=document.getElementById('toast');
+  t.className=`toast ${type}`;
+  document.getElementById('toast-msg').textContent=msg;
+  clearTimeout(tTimer);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  tTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ══════════════════════════════════════════════════════
+// KEYBOARD
+// ══════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeModal(); closeShareSheet(); closeSettings(); }
+});
+document.getElementById('urlInput').addEventListener('keydown',e=>{ if(e.key==='Enter') handleAdd(); });
+
+// ══════════════════════════════════════════════════════
+// DEMO SEED (only if no videos exist)
+// ══════════════════════════════════════════════════════
+function seedDemo() {
+  if (videos.length) return;
+  videos = [
+    { uid:1,type:'youtube',id:'9bZkp7q19f0',originalUrl:'https://www.youtube.com/watch?v=9bZkp7q19f0',
+      title:'PSY – GANGNAM STYLE',channel:'officialpsy',
+      thumb:'https://img.youtube.com/vi/9bZkp7q19f0/mqdefault.jpg',
+      url:'https://www.youtube.com/watch?v=9bZkp7q19f0',
+      addedAt:Date.now()-400000,watched:false,saved:true,shared:false },
+    { uid:2,type:'youtube',id:'jNQXAC9IVRw',originalUrl:'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+      title:'Me at the zoo — the very first YouTube video',channel:'jawed',
+      thumb:'https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg',
+      url:'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+      addedAt:Date.now()-800000,watched:true,watchedAt:Date.now()-200000,saved:false,shared:true },
+    { uid:3,type:'vimeo',id:'148751763',originalUrl:'https://vimeo.com/148751763',
+      title:'The Secret Number — Award Winning Short Film',channel:'Vimeo Staff Picks',
+      thumb:'https://vumbnail.com/148751763.jpg',
+      url:'https://vimeo.com/148751763',
+      addedAt:Date.now()-200000,watched:false,saved:false,shared:false },
+    { uid:4,type:'youtube',id:'dQw4w9WgXcQ',originalUrl:'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      title:'Rick Astley – Never Gonna Give You Up (embedding disabled — tests fallback)',channel:'Rick Astley',
+      thumb:'https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+      url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      addedAt:Date.now()-600000,watched:false,saved:false,shared:false,
+      receivedFrom:'Demo Friend',receivedFromAvatar:'🎭',receivedAt:Date.now()-600000 },
+  ];
+  saveVideos();
+}
+
+// ══════════════════════════════════════════════════════
+// GO
+// ══════════════════════════════════════════════════════
+loadProfile();
+loadVideos();
+seedDemo();
+boot();
+</script>
+</body>
+</html>
