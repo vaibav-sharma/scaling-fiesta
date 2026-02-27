@@ -23,6 +23,7 @@ import { SpinnerBadge } from '@/src/utils/spinner'
 import { FlipWordsDemo } from '@/src/utils/flipWords'
 import { saveMeal, getAllMeals } from "@/src/utils/mealDB"
 import { truncateMiddle } from '@/src/utils/truncate'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // -----------------------------
 // Mock meal generation function
@@ -281,7 +282,7 @@ export default function MealRecommender() {
   return (
     <div className="bg-background text-foreground p-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="border border-border bg-card shadow-md text-card-foreground">
+        <Card className="border border-white/20 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-xl text-card-foreground rounded-2xl">
           <CardHeader>
             <CardTitle><FlipWordsDemo {...({ flipWords: ["Breakfast", "Lunch", "Dinner"], phrase: "What should I eat for" } as any)} /></CardTitle>
             <CardDescription>Quick meal ideas tailored to your preferences</CardDescription>
@@ -352,7 +353,7 @@ export default function MealRecommender() {
             {/* Recent Meals */}
             <div>
               <Label>Recent Meals (avoid repetition)</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap md:flex-wrap gap-2 mt-2 overflow-x-auto pb-2">
                 {recentMeals.length > 0 ? (
                   recentMeals.map((meal, idx) => (
                     <Badge
@@ -363,13 +364,13 @@ export default function MealRecommender() {
                     >
                       <button
                         onClick={(e) => handleMealLoader(e, meal)}
-                        className="mr-1 text-xs hover:text-blue-500 shrink-0"
+                        className="mr-1 text-base hover:text-blue-500 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center -m-2"
                       >
                         ℹ️
                       </button>
 
                       <span
-                        className="truncate flex-1 text-xs font-medium text-center"
+                        className="truncate flex-1 text-xs md:text-sm font-medium text-center"
                         title={meal}
                       >
                         {truncateMiddle(meal, 30)}
@@ -377,7 +378,7 @@ export default function MealRecommender() {
 
                       <button
                         onClick={() => handleRemoveMeal(idx)}
-                        className="ml-1 text-xs hover:text-red-500 shrink-0"
+                        className="ml-1 text-base hover:text-red-500 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center -m-2"
                       >
                         ✕
                       </button>
@@ -417,29 +418,52 @@ export default function MealRecommender() {
               </div>
             </div>
 
-            {loading ? <SpinnerBadge text="Planning your meal for you" /> : <div className="flex justify-between mt-4">
-              <Button onClick={handleGenerate}>
-                <ArrowRight className="w-4 h-4 mr-1" /> Get Suggestion
-              </Button>
-              <div className="flex gap-2">
-                {/* <Button variant="secondary" onClick={handleSave}>
-                  <Save className="w-4 h-4 mr-1" /> Save Meal
-                </Button> */}
-                {/* <Button variant="outline" onClick={handleRegenerate}>
-                  <RefreshCcw className="w-4 h-4 mr-1" /> Generate Again
-                </Button> */}
-                <Button variant="outline" onClick={() => window.location.reload()}>
-                  <RefreshCcw className="w-4 h-4 mr-1" /> Reset
-                </Button>
+            {loading ? (
+              <div className="space-y-4 mt-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                  Planning your meal for you…
+                </div>
+                {/* Skeleton shaped like the result card */}
+                <div className="border border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex justify-between pt-2">
+                    <Skeleton className="h-10 w-28 rounded-md" />
+                    <Skeleton className="h-10 w-36 rounded-md" />
+                  </div>
+                </div>
               </div>
-            </div>}
+            ) : (
+              <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
+                <Button onClick={handleGenerate} className="min-h-[44px]">
+                  <ArrowRight className="w-4 h-4 mr-1" /> Get Suggestion
+                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button variant="outline" onClick={() => window.location.reload()}>
+                    <RefreshCcw className="w-4 h-4 mr-1" /> Reset
+                  </Button>
+                </div>
+              </div>
+            )}
             {error && <p className="text-sm text-red-500">{error}</p>}
 
           </CardContent>
         </Card>
 
         {result && (
-          <Card className="border border-border bg-card shadow-md text-card-foreground">
+          <Card className="border border-white/20 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-xl text-card-foreground rounded-2xl">
             <CardHeader>
               <CardTitle>
                 {result.mealType} — {result.dietType}
@@ -469,11 +493,11 @@ export default function MealRecommender() {
               </ul>
               <p className="text-sm text-muted-foreground mt-3">{result.reason}</p>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="secondary" onClick={handleSave}>
+            <CardFooter className="flex flex-col sm:flex-row justify-between gap-3">
+              <Button variant="secondary" onClick={handleSave} className="min-h-[44px]">
                 Save Meal
               </Button>
-              {!loading && <Button variant="outline" onClick={handleRegenerate}>
+              {!loading && <Button variant="outline" onClick={handleRegenerate} className="min-h-[44px]">
                 Generate Another
               </Button>}
             </CardFooter>

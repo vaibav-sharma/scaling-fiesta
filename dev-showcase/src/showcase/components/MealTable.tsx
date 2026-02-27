@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from 'react'
 import {
     Card,
-    CardHeader,
-    CardTitle,
     CardContent,
     CardFooter,
 } from '@/components/ui/card'
@@ -72,11 +70,7 @@ export default function MealHistoryTable() {
 
     return (
         <Card className="w-full">
-            <CardHeader>
-                <CardTitle>Saved Meal History</CardTitle>
-            </CardHeader>
-
-            <CardContent>
+            <CardContent className="pt-6">
                 {loading && <p className="text-sm text-muted-foreground">Loading meals…</p>}
                 {error && <p className="text-sm text-red-500">{error}</p>}
 

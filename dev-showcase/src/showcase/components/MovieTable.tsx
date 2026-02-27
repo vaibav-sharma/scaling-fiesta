@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from 'react'
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   CardFooter,
 } from '@/components/ui/card'
@@ -134,10 +132,7 @@ export default function MovieTable() {
   if (loading) {
     return (
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Saved Movies</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground">Loading saved movies…</p>
         </CardContent>
       </Card>
@@ -146,11 +141,7 @@ export default function MovieTable() {
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Saved Movies</CardTitle>
-      </CardHeader>
-
-      <CardContent>
+      <CardContent className="pt-6">
         {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
 
         {movies.length === 0 ? (

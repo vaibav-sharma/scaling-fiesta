@@ -25,6 +25,7 @@ import { FlipWordsDemo } from '@/src/utils/flipWords'
 import { HeroHighlightDemo } from '@/src/utils/highlightWords'
 import { LayoutTextFlipDemo } from '@/src/utils/textFlip'
 import { truncateMiddle } from '@/src/utils/truncate'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function MovieRecommender() {
   const [mood, setMood] = useState('inspiring')
@@ -137,7 +138,7 @@ export default function MovieRecommender() {
   return (
     <div className="bg-background text-foreground p-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="border border-border bg-card shadow-md text-card-foreground">
+        <Card className="border border-white/20 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-xl text-card-foreground rounded-2xl">
           <CardHeader>
             {/* <CardTitle>
               What Movie Should I Watch?
@@ -152,8 +153,8 @@ export default function MovieRecommender() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+          <CardContent className="space-y-4 px-3 md:px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Mood / Theme</Label>
                 {/* <Input value={mood} onChange={e => setMood(e.target.value)} /> */}
@@ -205,13 +206,13 @@ export default function MovieRecommender() {
                     >
                       <button
                         onClick={(e) => handleMovieLoader(e, movie)}
-                        className="mr-1 text-xs hover:text-blue-500 shrink-0"
+                        className="mr-1 text-base hover:text-blue-500 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center -m-2"
                       >
                         ℹ️
                       </button>
 
                       <span
-                        className="truncate text-xs font-medium flex-1 text-center"
+                        className="truncate text-xs md:text-sm font-medium flex-1 text-center"
                         title={movie}
                       >
                         {truncateMiddle(movie, 30)}
@@ -219,7 +220,7 @@ export default function MovieRecommender() {
 
                       <button
                         onClick={() => handleRemoveMovie(idx)}
-                        className="ml-1 text-xs hover:text-red-500 shrink-0"
+                        className="ml-1 text-base hover:text-red-500 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center -m-2"
                       >
                         ✕
                       </button>
@@ -263,16 +264,37 @@ export default function MovieRecommender() {
             </div>
 
             {loading ? (
-              <div className="flex py-4">
-                {/* <Film className="h-6 w-6 animate-pulse" /> */}
-                <SpinnerBadge text="Planning your movie for you" />
+              <div className="space-y-4 mt-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                  Finding the perfect movie for you…
+                </div>
+                {/* Skeleton shaped like the result card */}
+                <div className="border border-white/20 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-6 space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-56" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <div className="mt-4 space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                  <div className="flex justify-between pt-2">
+                    <Skeleton className="h-10 w-24 rounded-md" />
+                    <Skeleton className="h-10 w-36 rounded-md" />
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="flex justify-between mt-4">
-                <Button onClick={fetchMovieSuggestion}>
+              <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
+                <Button onClick={fetchMovieSuggestion} className="min-h-[44px]">
                   <ArrowRight className="w-4 h-4 mr-1" /> Get Suggestion
                 </Button>
-                <Button variant="outline" onClick={() => window.location.reload()}>
+                <Button variant="outline" onClick={() => window.location.reload()} className="min-h-[44px]">
                   <RefreshCcw className="w-4 h-4 mr-1" /> Reset
                 </Button>
               </div>
@@ -282,7 +304,7 @@ export default function MovieRecommender() {
         </Card>
 
         {result && (
-          <Card className="border border-border bg-card shadow-md text-card-foreground">
+          <Card className="border border-white/20 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-xl text-card-foreground rounded-2xl">
             <CardHeader>
               <CardTitle>{result.top_pick?.title || 'Movie Recommendation'}</CardTitle>
               <CardDescription>{result.mood} • {result.genre} • {result.language}</CardDescription>
@@ -304,11 +326,11 @@ export default function MovieRecommender() {
                 </div>
               )}
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="secondary" onClick={handleSave}>
+            <CardFooter className="flex flex-col sm:flex-row justify-between gap-3">
+              <Button variant="secondary" onClick={handleSave} className="min-h-[44px]">
                 <Save className="w-4 h-4 mr-1" /> Save
               </Button>
-              {!loading && <Button variant="outline" onClick={fetchMovieSuggestion}>
+              {!loading && <Button variant="outline" onClick={fetchMovieSuggestion} className="min-h-[44px]">
                 <RefreshCcw className="w-4 h-4 mr-1" /> New Suggestion
               </Button>}
             </CardFooter>

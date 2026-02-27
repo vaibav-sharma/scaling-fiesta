@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>History Timeline &amp; Calendar — Design Mock</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a1a;
+      --surface: rgba(255,255,255,0.05);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.1);
+      --text: #e4e4e7;
+      --text-muted: #71717a;
+      --accent-meal: #22c55e;
+      --accent-meal-bg: rgba(34,197,94,0.12);
+      --accent-movie: #6366f1;
+      --accent-movie-bg: rgba(99,102,241,0.12);
+      --accent-orange: #f97316;
+      --accent-orange-bg: rgba(249,115,22,0.1);
+      --radius: 16px;
+      --glass: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0;
+    }
+
+    /* ─── NAV TABS ─── */
+    .page-header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(10,10,26,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+    }
+    .page-header h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; }
+    .tab-row { display: flex; gap: 8px; }
+    .tab-btn {
+      padding: 8px 20px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-muted);
+      font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2);
+    }
+    .view-toggle { margin-left: auto; display: flex; gap: 4px; }
+
+    /* ─── CONTAINER ─── */
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+
+    /* ─── STATS ROW ─── */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      backdrop-filter: blur(20px);
+    }
+    .stat-card .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; margin-top: 4px; }
+    .stat-card .stat-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .stat-card.meal .stat-value { color: var(--accent-meal); }
+    .stat-card.movie .stat-value { color: var(--accent-movie); }
+    .stat-card.streak .stat-value { color: var(--accent-orange); }
+
+    /* ─── FILTER BAR ─── */
+    .filter-bar {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; align-items: center;
+    }
+    .filter-chip {
+      padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-muted);
+      font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+    }
+    .filter-chip.active { background: var(--accent-meal-bg); color: var(--accent-meal); border-color: var(--accent-meal); }
+    .filter-chip.movie-active { background: var(--accent-movie-bg); color: var(--accent-movie); border-color: var(--accent-movie); }
+
+    /* ═══════════════════════════
+       TIMELINE VIEW
+    ═══════════════════════════ */
+    .timeline { position: relative; padding-left: 40px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
+      width: 2px; background: linear-gradient(180deg, var(--accent-meal), var(--accent-movie), var(--accent-meal));
+      border-radius: 2px; opacity: 0.3;
+    }
+
+    .timeline-group { margin-bottom: 36px; }
+    .timeline-date {
+      position: relative; font-size: 0.8rem; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 16px; padding: 4px 12px;
+      background: var(--bg); display: inline-block;
+    }
+    .timeline-date::before {
+      content: ''; position: absolute; left: -33px; top: 50%; transform: translateY(-50%);
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--accent-meal); border: 2px solid var(--bg);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.25);
+    }
+
+    .timeline-card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 12px;
+      backdrop-filter: blur(16px);
+      transition: all 0.25s; cursor: default;
+      position: relative; overflow: hidden;
+    }
+    .timeline-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .timeline-card.meal::before { background: linear-gradient(90deg, var(--accent-meal), transparent); }
+    .timeline-card.movie::before { background: linear-gradient(90deg, var(--accent-movie), transparent); }
+    .timeline-card:hover { background: var(--surface-hover); transform: translateX(4px); }
+
+    .card-type-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; padding: 3px 10px; border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .card-type-badge.meal { background: var(--accent-meal-bg); color: var(--accent-meal); }
+    .card-type-badge.movie { background: var(--accent-movie-bg); color: var(--accent-movie); }
+
+    .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+    .card-details { display: flex; flex-wrap: wrap; gap: 8px; }
+    .detail-tag {
+      font-size: 0.75rem; padding: 4px 10px; border-radius: 8px;
+      background: rgba(255,255,255,0.06); color: var(--text-muted);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .card-time { font-size: 0.7rem; color: var(--text-muted); position: absolute; top: 20px; right: 20px; }
+
+    /* ═══════════════════════════
+       CALENDAR VIEW
+    ═══════════════════════════ */
+    .calendar-section { display: none; }
+    .calendar-section.active { display: block; }
+    .timeline-section.active { display: block; }
+    .timeline-section { display: none; }
+
+    .calendar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .calendar-header h2 { font-size: 1.2rem; font-weight: 600; }
+    .cal-nav { display: flex; gap: 8px; }
+    .cal-nav button {
+      width: 36px; height: 36px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: 1rem; cursor: pointer; transition: all 0.2s;
+    }
+    .cal-nav button:hover { background: var(--surface-hover); }
+
+    .calendar-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    }
+    .cal-day-header {
+      text-align: center; font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted); padding: 8px 0; text-transform: uppercase;
+    }
+    .cal-cell {
+      aspect-ratio: 1; border-radius: 12px; border: 1px solid transparent;
+      background: var(--surface); padding: 6px; display: flex; flex-direction: column;
+      align-items: center; gap: 2px; transition: all 0.2s; cursor: pointer;
+      position: relative; min-height: 70px;
+    }
+    .cal-cell:hover { border-color: var(--border); background: var(--surface-hover); }
+    .cal-cell.today { border-color: var(--accent-meal); box-shadow: 0 0 0 1px var(--accent-meal); }
+    .cal-cell.empty { background: transparent; cursor: default; }
+    .cal-cell.empty:hover { border-color: transparent; background: transparent; }
+
+    .cal-date { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+    .cal-dots { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: auto; }
+    .cal-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+    }
+    .cal-dot.meal { background: var(--accent-meal); }
+    .cal-dot.movie { background: var(--accent-movie); }
+
+    /* Calendar day detail popover (simulated) */
+    .cal-cell .cal-popover {
+      display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%); width: 220px; z-index: 10;
+      background: rgba(20,20,40,0.95); backdrop-filter: blur(20px);
+      border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .cal-cell:hover .cal-popover { display: block; }
+    .cal-popover-item { font-size: 0.75rem; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .cal-popover-item:last-child { border-bottom: none; }
+    .cal-popover-title { font-weight: 600; font-size: 0.8rem; }
+    .cal-popover-sub { color: var(--text-muted); font-size: 0.7rem; }
+
+    /* ─── WEEKLY HEATMAP ─── */
+    .heatmap-section { margin-top: 40px; margin-bottom: 40px; }
+    .heatmap-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--text-muted); }
+    .heatmap-row { display: flex; gap: 3px; margin-bottom: 3px; }
+    .heatmap-cell {
+      width: 14px; height: 14px; border-radius: 3px;
+      background: rgba(255,255,255,0.04); transition: all 0.15s;
+    }
+    .heatmap-cell.l1 { background: rgba(34,197,94,0.15); }
+    .heatmap-cell.l2 { background: rgba(34,197,94,0.3); }
+    .heatmap-cell.l3 { background: rgba(34,197,94,0.5); }
+    .heatmap-cell.l4 { background: rgba(34,197,94,0.75); }
+    .heatmap-cell:hover { transform: scale(1.4); }
+    .heatmap-labels { display: flex; gap: 3px; margin-top: 6px; align-items: center; }
+    .heatmap-labels span { font-size: 0.65rem; color: var(--text-muted); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      .container { padding: 16px 12px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .timeline { padding-left: 28px; }
+      .timeline::before { left: 8px; }
+      .timeline-date::before { left: -24px; width: 10px; height: 10px; }
+      .cal-cell { min-height: 50px; padding: 4px; }
+      .cal-date { font-size: 0.65rem; }
+      .cal-dot { width: 5px; height: 5px; }
+      .card-time { position: static; margin-top: 8px; }
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .timeline-card { animation: fadeUp 0.4s ease both; }
+    .timeline-group:nth-child(1) .timeline-card { animation-delay: 0s; }
+    .timeline-group:nth-child(2) .timeline-card { animation-delay: 0.08s; }
+    .timeline-group:nth-child(3) .timeline-card { animation-delay: 0.16s; }
+    .timeline-group:nth-child(4) .timeline-card { animation-delay: 0.24s; }
+    .timeline-group:nth-child(5) .timeline-card { animation-delay: 0.32s; }
+
+    .stat-card { animation: fadeUp 0.5s ease both; }
+    .stat-card:nth-child(1) { animation-delay: 0s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.2s; }
+    .stat-card:nth-child(4) { animation-delay: 0.3s; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── HEADER ─── -->
+  <header class="page-header">
+    <h1>🕰️ Your History</h1>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showAll()">All</button>
+      <button class="tab-btn" onclick="filterType('meal')">🥗 Meals</button>
+      <button class="tab-btn" onclick="filterType('movie')">🎬 Movies</button>
+      <div class="view-toggle">
+        <button class="tab-btn active" id="btn-timeline" onclick="switchView('timeline')">Timeline</button>
+        <button class="tab-btn" id="btn-calendar" onclick="switchView('calendar')">Calendar</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ─── STATS ─── -->
+    <div class="stats-row">
+      <div class="stat-card meal">
+        <div class="stat-label">Meals Planned</div>
+        <div class="stat-value">47</div>
+        <div class="stat-sub">12 this week</div>
+      </div>
+      <div class="stat-card movie">
+        <div class="stat-label">Movies Watched</div>
+        <div class="stat-value">23</div>
+        <div class="stat-sub">4 this week</div>
+      </div>
+      <div class="stat-card streak">
+        <div class="stat-label">Current Streak</div>
+        <div class="stat-value">🔥 8</div>
+        <div class="stat-sub">days in a row</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Top Cuisine</div>
+        <div class="stat-value" style="font-size:1.3rem; color: var(--text);">Indian 🇮🇳</div>
+        <div class="stat-sub">28 of 47 meals</div>
+      </div>
+    </div>
+
+    <!-- ─── HEATMAP ─── -->
+    <div class="heatmap-section">
+      <h3>Activity — Last 16 Weeks</h3>
+      <div id="heatmap"></div>
+      <div class="heatmap-labels">
+        <span>Less</span>
+        <div class="heatmap-cell"></div>
+        <div class="heatmap-cell l1"></div>
+        <div class="heatmap-cell l2"></div>
+        <div class="heatmap-cell l3"></div>
+        <div class="heatmap-cell l4"></div>
+        <span>More</span>
+      </div>
+    </div>
+
+    <!-- ═══ TIMELINE VIEW ═══ -->
+    <div class="timeline-section active" id="view-timeline">
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <span style="font-size:0.8rem; color: var(--text-muted); margin-right: 4px;">Filter:</span>
+        <button class="filter-chip active">All</button>
+        <button class="filter-chip">Breakfast</button>
+        <button class="filter-chip">Lunch</button>
+        <button class="filter-chip">Dinner</button>
+        <button class="filter-chip">Vegetarian</button>
+        <button class="filter-chip movie-active" style="background: transparent; color: var(--text-muted); border-color: var(--border);">Drama</button>
+        <button class="filter-chip">Comedy</button>
+      </div>
+
+      <div class="timeline">
+
+        <!-- ─── TODAY ─── -->
+        <div class="timeline-group">
+          <div class="timeline-date">Today — Feb 8, 2026</div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">12:34 PM</span>
+            <div class="card-title">Paneer Butter Masala with Jeera Rice</div>
+            <div class="card-meta">Lunch · Vegetarian · Indian · Moderate calories</div>
+            <div class="card-details">
+              <span class="detail-tag">🍚 Jeera Rice</span>
+              <span class="detail-tag">🥘 Paneer Butter Masala</span>
+              <span class="detail-tag">🥗 Cucumber Raita</span>
+              <span class="detail-tag">🍵 Buttermilk</span>
+            </div>
+          </div>
+
+          <div class="timeline-card movie">
+            <span class="card-type-badge movie">🎬 Movie</span>
+            <span class="card-time">8:15 PM</span>
+            <div class="card-title">The Grand Budapest Hotel</div>
+            <div class="card-meta">Comedy, Drama · English · Netflix · Solo</div>
+            <div class="card-details">
+              <span class="detail-tag">😄 Light-hearted</span>
+              <span class="detail-tag">⭐ Wes Anderson</span>
+              <span class="detail-tag">🕐 1h 39m</span>
+            </div>
+          </div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">7:45 PM</span>
+            <div class="card-title">Mixed Veg Sabzi with Multigrain Roti</div>
+            <div class="card-meta">Dinner · Vegetarian · Indian · Light calories</div>
+            <div class="card-details">
+              <span class="detail-tag">🫓 Multigrain Roti</span>
+              <span class="detail-tag">🥦 Mixed Veg</span>
+              <span class="detail-tag">🍲 Moong Dal</span>
+              <span class="detail-tag">🍵 Turmeric Milk</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── YESTERDAY ─── -->
+        <div class="timeline-group">
+          <div class="timeline-date">Yesterday — Feb 7, 2026</div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">8:10 AM</span>
+            <div class="card-title">Poha with Chai</div>
+            <div class="card-meta">Breakfast · Vegetarian · Indian · Light</div>
+            <div class="card-details">
+              <span class="detail-tag">🥣 Flattened Rice</span>
+              <span class="detail-tag">🥜 Peanuts</span>
+              <span class="detail-tag">🍵 Masala Chai</span>
+            </div>
+          </div>
+
+          <div class="timeline-card movie">
+            <span class="card-type-badge movie">🎬 Movie</span>
+            <span class="card-time">9:00 PM</span>
+            <div class="card-title">Dune: Part Two</div>
+            <div class="card-meta">Sci-Fi, Adventure · English · Prime Video · Couple</div>
+            <div class="card-details">
+              <span class="detail-tag">🌌 Epic</span>
+              <span class="detail-tag">⭐ Denis Villeneuve</span>
+              <span class="detail-tag">🕐 2h 46m</span>
+            </div>
+          </div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">1:00 PM</span>
+            <div class="card-title">Rajma Chawal with Salad</div>
+            <div class="card-meta">Lunch · Vegetarian · Indian · Moderate</div>
+            <div class="card-details">
+              <span class="detail-tag">🍚 Steamed Rice</span>
+              <span class="detail-tag">🫘 Rajma</span>
+              <span class="detail-tag">🥒 Green Salad</span>
+              <span class="detail-tag">🧅 Onion-Tomato</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── FEB 5 ─── -->
+        <div class="timeline-group">
+          <div class="timeline-date">Wed, Feb 5, 2026</div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">7:30 PM</span>
+            <div class="card-title">Mediterranean Quinoa Bowl</div>
+            <div class="card-meta">Dinner · Vegetarian · Mediterranean · Light</div>
+            <div class="card-details">
+              <span class="detail-tag">🥗 Quinoa</span>
+              <span class="detail-tag">🫒 Olives</span>
+              <span class="detail-tag">🧀 Feta</span>
+              <span class="detail-tag">🍅 Cherry Tomato</span>
+            </div>
+          </div>
+
+          <div class="timeline-card movie">
+            <span class="card-type-badge movie">🎬 Movie</span>
+            <span class="card-time">10:00 PM</span>
+            <div class="card-title">Oppenheimer</div>
+            <div class="card-meta">Biography, Drama · English · Netflix · Solo</div>
+            <div class="card-details">
+              <span class="detail-tag">🧠 Thought-provoking</span>
+              <span class="detail-tag">⭐ Christopher Nolan</span>
+              <span class="detail-tag">🕐 3h 0m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── FEB 3 ─── -->
+        <div class="timeline-group">
+          <div class="timeline-date">Mon, Feb 3, 2026</div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">12:15 PM</span>
+            <div class="card-title">Tofu Stir-Fry with Brown Rice</div>
+            <div class="card-meta">Lunch · Vegetarian · Continental · Moderate</div>
+            <div class="card-details">
+              <span class="detail-tag">🍚 Brown Rice</span>
+              <span class="detail-tag">🧈 Tofu</span>
+              <span class="detail-tag">🥬 Bok Choy</span>
+              <span class="detail-tag">🫚 Ginger-Soy</span>
+            </div>
+          </div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">7:00 PM</span>
+            <div class="card-title">Chole Bhature</div>
+            <div class="card-meta">Dinner · Vegetarian · Indian · Heavy</div>
+            <div class="card-details">
+              <span class="detail-tag">🫓 Bhature</span>
+              <span class="detail-tag">🫘 Chole</span>
+              <span class="detail-tag">🧅 Onion Rings</span>
+              <span class="detail-tag">🥒 Pickle</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── JAN 30 ─── -->
+        <div class="timeline-group">
+          <div class="timeline-date">Fri, Jan 30, 2026</div>
+
+          <div class="timeline-card movie">
+            <span class="card-type-badge movie">🎬 Movie</span>
+            <span class="card-time">8:00 PM</span>
+            <div class="card-title">Everything Everywhere All at Once</div>
+            <div class="card-meta">Action, Comedy · English · Prime Video · Family</div>
+            <div class="card-details">
+              <span class="detail-tag">🌀 Mind-bending</span>
+              <span class="detail-tag">❤️ Heartfelt</span>
+              <span class="detail-tag">🕐 2h 19m</span>
+            </div>
+          </div>
+
+          <div class="timeline-card meal">
+            <span class="card-type-badge meal">🥗 Meal</span>
+            <span class="card-time">1:30 PM</span>
+            <div class="card-title">Aloo Paratha with Curd</div>
+            <div class="card-meta">Lunch · Vegetarian · Indian · Moderate</div>
+            <div class="card-details">
+              <span class="detail-tag">🫓 Paratha</span>
+              <span class="detail-tag">🥔 Aloo</span>
+              <span class="detail-tag">🥛 Curd</span>
+              <span class="detail-tag">🥒 Chutney</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ CALENDAR VIEW ═══ -->
+    <div class="calendar-section" id="view-calendar">
+
+      <div class="calendar-header">
+        <div class="cal-nav">
+          <button>‹</button>
+        </div>
+        <h2>February 2026</h2>
+        <div class="cal-nav">
+          <button>›</button>
+        </div>
+      </div>
+
+      <div class="calendar-grid">
+        <!-- Day headers -->
+        <div class="cal-day-header">Sun</div>
+        <div class="cal-day-header">Mon</div>
+        <div class="cal-day-header">Tue</div>
+        <div class="cal-day-header">Wed</div>
+        <div class="cal-day-header">Thu</div>
+        <div class="cal-day-header">Fri</div>
+        <div class="cal-day-header">Sat</div>
+
+        <!-- Week 1: Feb starts on Sunday -->
+        <div class="cal-cell">
+          <span class="cal-date">1</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot meal"></div>
+          </div>
+        </div>
+        <div class="cal-cell">
+          <span class="cal-date">2</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot movie"></div>
+          </div>
+        </div>
+        <div class="cal-cell">
+          <span class="cal-date">3</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot meal"></div>
+          </div>
+          <div class="cal-popover">
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🥗 Tofu Stir-Fry</div>
+              <div class="cal-popover-sub">Lunch · Continental</div>
+            </div>
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🥗 Chole Bhature</div>
+              <div class="cal-popover-sub">Dinner · Indian</div>
+            </div>
+          </div>
+        </div>
+        <div class="cal-cell">
+          <span class="cal-date">4</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+          </div>
+        </div>
+        <div class="cal-cell">
+          <span class="cal-date">5</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot movie"></div>
+          </div>
+          <div class="cal-popover">
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🥗 Quinoa Bowl</div>
+              <div class="cal-popover-sub">Dinner · Mediterranean</div>
+            </div>
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🎬 Oppenheimer</div>
+              <div class="cal-popover-sub">Drama · Netflix</div>
+            </div>
+          </div>
+        </div>
+        <div class="cal-cell">
+          <span class="cal-date">6</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot meal"></div>
+          </div>
+        </div>
+        <div class="cal-cell">
+          <span class="cal-date">7</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot movie"></div>
+          </div>
+          <div class="cal-popover">
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🥗 Poha with Chai</div>
+              <div class="cal-popover-sub">Breakfast · Indian</div>
+            </div>
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🥗 Rajma Chawal</div>
+              <div class="cal-popover-sub">Lunch · Indian</div>
+            </div>
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🎬 Dune: Part Two</div>
+              <div class="cal-popover-sub">Sci-Fi · Prime Video</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Week 2 -->
+        <div class="cal-cell today">
+          <span class="cal-date" style="color: var(--accent-meal); font-weight: 700;">8</span>
+          <div class="cal-dots">
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot meal"></div>
+            <div class="cal-dot movie"></div>
+          </div>
+          <div class="cal-popover">
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🥗 Paneer Butter Masala</div>
+              <div class="cal-popover-sub">Lunch · Indian</div>
+            </div>
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🥗 Mixed Veg Sabzi</div>
+              <div class="cal-popover-sub">Dinner · Indian</div>
+            </div>
+            <div class="cal-popover-item">
+              <div class="cal-popover-title">🎬 Grand Budapest Hotel</div>
+              <div class="cal-popover-sub">Comedy · Netflix</div>
+            </div>
+          </div>
+        </div>
+        <div class="cal-cell"><span class="cal-date">9</span></div>
+        <div class="cal-cell"><span class="cal-date">10</span></div>
+        <div class="cal-cell"><span class="cal-date">11</span></div>
+        <div class="cal-cell"><span class="cal-date">12</span></div>
+        <div class="cal-cell"><span class="cal-date">13</span></div>
+        <div class="cal-cell"><span class="cal-date">14</span></div>
+
+        <!-- Week 3 -->
+        <div class="cal-cell"><span class="cal-date">15</span></div>
+        <div class="cal-cell"><span class="cal-date">16</span></div>
+        <div class="cal-cell"><span class="cal-date">17</span></div>
+        <div class="cal-cell"><span class="cal-date">18</span></div>
+        <div class="cal-cell"><span class="cal-date">19</span></div>
+        <div class="cal-cell"><span class="cal-date">20</span></div>
+        <div class="cal-cell"><span class="cal-date">21</span></div>
+
+        <!-- Week 4 -->
+        <div class="cal-cell"><span class="cal-date">22</span></div>
+        <div class="cal-cell"><span class="cal-date">23</span></div>
+        <div class="cal-cell"><span class="cal-date">24</span></div>
+        <div class="cal-cell"><span class="cal-date">25</span></div>
+        <div class="cal-cell"><span class="cal-date">26</span></div>
+        <div class="cal-cell"><span class="cal-date">27</span></div>
+        <div class="cal-cell"><span class="cal-date">28</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Generate heatmap ──
+    const heatmapEl = document.getElementById('heatmap');
+    const levels = ['', 'l1', 'l2', 'l3', 'l4'];
+    // 16 weeks × 7 days
+    for (let week = 0; week < 16; week++) {
+      const row = document.createElement('div');
+      row.className = 'heatmap-row';
+      for (let day = 0; day < 7; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        // More activity for recent weeks
+        const recency = (week / 16);
+        const chance = 0.3 + recency * 0.5;
+        if (Math.random() < chance) {
+          const intensity = Math.min(4, Math.floor(Math.random() * 3 + recency * 3));
+          cell.classList.add(levels[intensity] || '');
+        }
+        row.appendChild(cell);
+      }
+      heatmapEl.appendChild(row);
+    }
+
+    // ── View toggle ──
+    function switchView(view) {
+      document.getElementById('view-timeline').classList.toggle('active', view === 'timeline');
+      document.getElementById('view-calendar').classList.toggle('active', view === 'calendar');
+      document.getElementById('btn-timeline').classList.toggle('active', view === 'timeline');
+      document.getElementById('btn-calendar').classList.toggle('active', view === 'calendar');
+    }
+
+    // ── Tab type filter (visual only) ──
+    function showAll() {
+      document.querySelectorAll('.tab-row .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-row .tab-btn')[0].classList.add('active');
+      document.querySelectorAll('.timeline-card').forEach(c => c.style.display = '');
+    }
+    function filterType(type) {
+      document.querySelectorAll('.tab-row .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-row .tab-btn')[type === 'meal' ? 1 : 2].classList.add('active');
+      document.querySelectorAll('.timeline-card').forEach(c => {
+        c.style.display = c.classList.contains(type) ? '' : 'none';
+      });
+    }
+
+    // ── Filter chip toggle ──
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.classList.toggle('active');
+      });
+    });
+  </script>
+</body>
+</html>

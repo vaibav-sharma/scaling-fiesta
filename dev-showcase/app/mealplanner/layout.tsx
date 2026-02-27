@@ -30,31 +30,9 @@ const AnimatedCanvasWrapperAny = AnimatedCanvasWrapper as any
 export default function ShowcaseLayout({ children }: { children: ReactNode }) {
   return (
     <AnimatePresence mode="wait">
-      {/* Wrap subpages in animation container */}
       <AnimatedCanvasWrapperAny>
         {children}
       </AnimatedCanvasWrapperAny>
     </AnimatePresence>
-    // <SidebarProvider>
-    //   <Sidebar>
-    //     <SidebarContent>
-    //       <AppSidebar />
-    //     </SidebarContent>
-    //   </Sidebar>
-
-    //   <FloatingSidebarTrigger />
-
-    //   <SidebarInset>
-    //     <AnimatePresence mode="wait">
-    //       {/* Wrap subpages in animation container */}
-    //       <AnimatedCanvasWrapperAny>
-    //         {children}
-    //       </AnimatedCanvasWrapperAny>
-    //     </AnimatePresence>
-
-    //     {/* Command palette should be globally available */}
-    //     <CommandPalette />
-    //   </SidebarInset>
-    // </SidebarProvider>
   )
 }
