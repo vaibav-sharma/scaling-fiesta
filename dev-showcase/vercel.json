@@ -1,5 +1,1 @@
-{
-  "rewrites": [
-    { "source": "/clips", "destination": "/clips/index.html" }
-  ]
-}
+{}

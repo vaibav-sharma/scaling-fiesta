@@ -79,7 +79,12 @@ const authOptions = {
     async redirect({ url, baseUrl }: any) {
       // Redirect to home after signin
       if (url.startsWith("/")) return `${baseUrl}${url}`
-      else if (new URL(url).origin === baseUrl) return url
+      try {
+        const urlOrigin = new URL(url).origin
+        // Accept both www and non-www variants of the same domain
+        const normalise = (u: string) => u.replace('://www.', '://')
+        if (normalise(urlOrigin) === normalise(baseUrl)) return url
+      } catch {}
       return baseUrl
     },
   },

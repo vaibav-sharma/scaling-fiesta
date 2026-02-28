@@ -62,6 +62,11 @@ export default function LoginPage() {
     // Redirect if already authenticated via OAuth
     if (session) {
         router.push('/')
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        )
     }
 
     return (
