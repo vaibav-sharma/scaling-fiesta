@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d0d0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VidClip">
-<meta name="description" content="Save &amp; share videos with friends. YouTube, Vimeo, Instagram, TikTok, X, Reddit, Twitch, Spotify and more.">
+<meta name="description" content="Save & share videos with friends. YouTube, Vimeo, Instagram, TikTok, X, Reddit, Twitch, Spotify and more.">
 <meta property="og:title" content="VidClip — your video feed">
-<meta property="og:description" content="Save &amp; share videos with friends">
+<meta property="og:description" content="Save & share videos with friends">
 <meta property="og:type" content="website">
 <title>VidClip</title>
 <script>
@@ -22,8 +23,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e8ff47'/%3E%3Cpath d='M12 10l10 6-10 6V10z' fill='%230d0d0f'/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════
    RESET & VARS
@@ -450,7 +451,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 /* ══════════════════════════════════════════
    SHARE SHEET
 ══════════════════════════════════════════ */
-.share-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;transition:opacity .2s}
+.share-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:550;display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;transition:opacity .2s}
 .share-sheet-overlay.open{opacity:1;pointer-events:all}
 @media(min-width:641px){
   .share-sheet-overlay{padding:20px;align-items:center}
@@ -605,7 +606,202 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 /* ══════════════════════════════════════════
    TOAST
 ══════════════════════════════════════════ */
-.toast{position:fixed;bottom:calc(80px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow-toast);transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:600;max-width:90vw}
+/* ══════════════════════════════════════════
+   REEL MODE — fullscreen scroll-snap video viewer
+══════════════════════════════════════════ */
+.reel-overlay{
+  position:fixed;inset:0;background:#000;z-index:350;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+  overflow:hidden;
+}
+.reel-overlay.open{opacity:1;pointer-events:all}
+.reel-scroller{
+  width:100%;height:100%;
+  overflow-y:auto;overflow-x:hidden;
+  scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.reel-scroller::-webkit-scrollbar{display:none}
+.reel-slide{
+  position:relative;width:100%;height:100%;height:100dvh;
+  scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;align-items:center;justify-content:center;
+  background:#000;overflow:hidden;
+}
+.reel-player{
+  position:relative;background:#000;display:flex;
+  align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.reel-player.vertical{
+  aspect-ratio:9/16;
+  height:min(100vh,calc(100vw * 16 / 9));
+  height:min(100dvh,calc(100vw * 16 / 9));
+}
+.reel-player.landscape{
+  aspect-ratio:16/9;
+  width:min(100vw,calc(100vh * 16 / 9));
+  width:min(100vw,calc(100dvh * 16 / 9));
+}
+.reel-player.compact{
+  width:min(560px,100vw);height:auto;aspect-ratio:auto;
+}
+.reel-player iframe{
+  width:100%;height:100%;border:0;display:block;
+}
+.reel-player.compact iframe{min-height:152px;height:240px}
+/* placeholder shown while iframe is not mounted */
+.reel-placeholder{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background-size:cover;background-position:center;
+}
+.reel-placeholder::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,rgba(0,0,0,.55) 100%);
+  backdrop-filter:blur(12px);
+}
+.reel-placeholder-play{
+  position:relative;z-index:1;width:64px;height:64px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  border-radius:50%;display:grid;place-items:center;
+  backdrop-filter:blur(8px);color:#fff;
+}
+/* top bar */
+.reel-topbar{
+  position:absolute;top:0;left:0;right:0;z-index:3;
+  padding:calc(14px + var(--safe-top)) 16px 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:linear-gradient(180deg,rgba(0,0,0,.6) 0%,rgba(0,0,0,0) 100%);
+  pointer-events:none;
+}
+.reel-topbar > *{pointer-events:auto}
+.reel-progress{
+  display:flex;gap:3px;flex:1;align-items:center;max-width:360px;
+}
+.reel-progress-dot{
+  flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.25);
+  max-width:24px;transition:background .2s;
+}
+.reel-progress-dot.active{background:#fff}
+.reel-progress-dot.past{background:rgba(255,255,255,.55)}
+.reel-progress-count{font-size:11px;color:rgba(255,255,255,.7);font-weight:500;white-space:nowrap}
+.reel-close{
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);color:#fff;
+  width:38px;height:38px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;backdrop-filter:blur(8px);
+  transition:background .15s;flex-shrink:0;
+}
+.reel-close:hover{background:rgba(0,0,0,.7)}
+/* side action rail */
+.reel-actions{
+  position:absolute;right:10px;bottom:120px;z-index:3;
+  display:flex;flex-direction:column;gap:14px;
+  pointer-events:none;
+}
+.reel-actions > *{pointer-events:auto}
+.reel-action{
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);
+  color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;backdrop-filter:blur(8px);
+  transition:transform .15s,background .15s;position:relative;
+}
+.reel-action:hover{background:rgba(0,0,0,.65);transform:scale(1.05)}
+.reel-action.on{background:var(--accent2);border-color:var(--accent2)}
+.reel-action-label{
+  font-size:10px;color:#fff;text-align:center;margin-top:3px;
+  font-weight:600;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.7);
+}
+.reel-action-wrap{display:flex;flex-direction:column;align-items:center}
+/* bottom info */
+.reel-info{
+  position:absolute;left:0;right:60px;bottom:0;z-index:3;
+  padding:24px 20px calc(28px + var(--safe-bottom));
+  background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,0) 100%);
+  pointer-events:none;
+}
+.reel-info > *{pointer-events:auto}
+.reel-src-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.reel-src-badge{
+  font-size:10px;font-weight:700;color:#fff;
+  padding:3px 9px;border-radius:20px;letter-spacing:.6px;text-transform:uppercase;
+  display:flex;align-items:center;gap:5px;backdrop-filter:blur(6px);
+}
+.reel-from{
+  background:rgba(180,127,255,.85);color:#fff;font-size:10px;font-weight:600;
+  padding:3px 9px;border-radius:20px;
+}
+.reel-title{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#fff;
+  line-height:1.35;margin-bottom:5px;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  text-shadow:0 1px 4px rgba(0,0,0,.5);
+}
+.reel-channel{font-size:12px;color:rgba(255,255,255,.75);font-weight:500;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.reel-note{
+  background:rgba(232,255,71,.95);color:#0d0d0f;
+  font-size:12px;font-weight:600;padding:7px 11px;border-radius:8px;
+  margin-top:10px;display:inline-flex;gap:6px;align-items:center;max-width:100%;line-height:1.4;
+}
+/* hint shown on first launch */
+.reel-hint{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  background:rgba(0,0,0,.7);color:#fff;padding:10px 16px;border-radius:24px;
+  font-size:13px;font-weight:500;backdrop-filter:blur(10px);
+  display:flex;align-items:center;gap:8px;pointer-events:none;
+  animation:fadeUp .3s ease, reelHintFade 1s ease 2s forwards;
+}
+@keyframes reelHintFade{to{opacity:0;transform:translate(-50%,-50%) translateY(-20px)}}
+/* nav arrows desktop */
+.reel-nav-arrow{
+  display:none;position:absolute;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);color:#fff;
+  width:40px;height:40px;border-radius:50%;cursor:pointer;z-index:3;
+  align-items:center;justify-content:center;backdrop-filter:blur(8px);
+  transition:background .15s,opacity .2s;
+}
+.reel-nav-arrow:hover{background:rgba(0,0,0,.75)}
+.reel-nav-arrow.up{top:12px;transform:translate(-50%,calc(var(--safe-top, 0px) + 60px))}
+.reel-nav-arrow.down{bottom:24px;transform:translate(-50%,calc(-1 * var(--safe-bottom, 0px)))}
+@media(hover:hover) and (min-width:800px){
+  .reel-nav-arrow{display:flex}
+}
+.reel-nav-arrow.hidden{opacity:0;pointer-events:none}
+/* unsupported / fallback inside reel */
+.reel-fallback{
+  width:100%;max-width:480px;padding:32px 20px;text-align:center;color:#fff;
+}
+.reel-fallback-icon{
+  width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;
+  margin:0 auto 16px;color:rgba(255,255,255,.6);
+}
+.reel-fallback h3{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:6px}
+.reel-fallback p{font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:16px}
+.reel-fallback-btn{
+  background:#fff;color:#0d0d0f;border:none;border-radius:10px;
+  padding:11px 22px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+  cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+}
+.reel-fallback-btn:hover{opacity:.85}
+/* launch button in header */
+.reel-launch-btn{
+  background:linear-gradient(135deg,var(--accent2),#e8ff47);
+  color:#0d0d0f;border:none;border-radius:10px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:12px;
+  padding:0 12px;height:38px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  transition:opacity .15s,transform .15s;
+}
+.reel-launch-btn:hover{opacity:.9;transform:translateY(-1px)}
+.reel-launch-btn:active{transform:scale(.97)}
+.reel-launch-btn .reel-launch-ico{font-size:14px;line-height:1}
+@media(max-width:640px){
+  .reel-launch-btn span:not(.reel-launch-ico){display:none}
+  .reel-launch-btn{padding:0;width:38px;justify-content:center}
+}
+
+
 @media(min-width:641px){.toast{bottom:24px}}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
@@ -636,28 +832,31 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 </div>
 
 <!-- ══ MAIN APP ══ -->
-<div class="app" id="main-app" style="">
+<div class="app" id="main-app" style="display:none">
   <header>
     <div class="logo">
       <div class="logo-mark" aria-hidden="true">
         <svg width="18" height="18" viewBox="0 0 17 17" fill="none">
-          <rect x="1" y="1" width="15" height="15" rx="4" fill="#0d0d0f"></rect>
-          <path d="M6.5 5.5l6 3-6 3V5.5z" fill="#e8ff47"></path>
+          <rect x="1" y="1" width="15" height="15" rx="4" fill="#0d0d0f"/>
+          <path d="M6.5 5.5l6 3-6 3V5.5z" fill="#e8ff47"/>
         </svg>
       </div>
       <div class="logo-text">Vid<span>Clip</span></div>
     </div>
     <div class="header-right">
-      <div class="stat-chip"><strong id="st-new">3</strong>&nbsp;new</div>
-      <div class="stat-chip"><strong id="st-saved">1</strong>&nbsp;saved</div>
+      <div class="stat-chip"><strong id="st-new">0</strong>&nbsp;new</div>
+      <div class="stat-chip"><strong id="st-saved">0</strong>&nbsp;saved</div>
+      <button class="reel-launch-btn" id="reelLaunchBtn" onclick="openReelMode()" aria-label="Reel mode" title="Reel mode — scroll through videos">
+        <span class="reel-launch-ico">▶</span>
+        <span>Reel</span>
+      </button>
       <div class="profile-chip" onclick="openSettings()" role="button" tabindex="0" aria-label="Open profile and settings">
-        <span class="av" id="hdr-avatar">🤩</span>
-        <span class="pname" id="hdr-name">Vaibav</span>
+        <span class="av" id="hdr-avatar">😎</span>
+        <span class="pname" id="hdr-name">You</span>
       </div>
-      <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Switch to light theme" title="Switch to light theme"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="3.1" stroke="currentColor" stroke-width="1.4"></circle>
-      <path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.1 3.1l1.1 1.1M11.8 11.8l1.1 1.1M3.1 12.9l1.1-1.1M11.8 4.2l1.1-1.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
-    </svg></button>
+      <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
+        <!-- icon set by JS based on current theme -->
+      </button>
     </div>
   </header>
 
@@ -670,62 +869,35 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
       <input class="url-input" id="urlInput" type="url" placeholder="Paste a video link…" autocomplete="off" aria-label="Video URL">
       <button class="add-btn" id="addBtn" onclick="handleAdd()" aria-label="Add video">
         <svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-          <path d="M7 2v10M2 7h10" stroke="#0d0d0f" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M7 2v10M2 7h10" stroke="#0d0d0f" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <div class="spinner"></div>
         Add
       </button>
     </div>
-    <div class="source-hints" id="sourceHints"><div class="hint-chip"><div class="sdot" style="background:var(--c-yt)"></div>YouTube</div><div class="hint-chip"><div class="sdot" style="background:var(--c-vi)"></div>Vimeo</div><div class="hint-chip"><div class="sdot" style="background:var(--c-ig)"></div>Instagram</div><div class="hint-chip"><div class="sdot" style="background:var(--c-tt)"></div>TikTok</div><div class="hint-chip"><div class="sdot" style="background:var(--c-tw)"></div>X / Twitter</div><div class="hint-chip"><div class="sdot" style="background:var(--c-rd)"></div>Reddit</div><div class="hint-chip"><div class="sdot" style="background:var(--c-tv)"></div>Twitch</div><div class="hint-chip"><div class="sdot" style="background:var(--c-sp)"></div>Spotify</div><div class="hint-chip"><div class="sdot" style="background:var(--c-fb)"></div>Facebook</div></div>
+    <div class="source-hints" id="sourceHints"></div>
     <div id="previewSlot"></div>
   </div>
 
   <nav class="nav-tabs" aria-label="Sections">
-    <button class="nav-tab active" data-sec="feed" onclick="setSection('feed',this)">Feed <span class="npill" id="np-feed">3</span></button>
-    <button class="nav-tab" data-sec="saved" onclick="setSection('saved',this)">♥ Saved <span class="npill" id="np-saved">1</span></button>
-    <button class="nav-tab" data-sec="received" onclick="setSection('received',this)">📨 Received <span class="npill" id="np-received">1</span></button>
-    <button class="nav-tab" data-sec="shared" onclick="setSection('shared',this)">↗ Shared <span class="npill" id="np-shared">2</span></button>
-    <button class="nav-tab" data-sec="watched" onclick="setSection('watched',this)">✓ Watched <span class="npill" id="np-watched">1</span></button>
+    <button class="nav-tab active" data-sec="feed"     onclick="setSection('feed',this)">Feed <span class="npill" id="np-feed">0</span></button>
+    <button class="nav-tab"        data-sec="saved"    onclick="setSection('saved',this)">♥ Saved <span class="npill" id="np-saved">0</span></button>
+    <button class="nav-tab"        data-sec="received" onclick="setSection('received',this)">📨 Received <span class="npill" id="np-received">0</span></button>
+    <button class="nav-tab"        data-sec="shared"   onclick="setSection('shared',this)">↗ Shared <span class="npill" id="np-shared">0</span></button>
+    <button class="nav-tab"        data-sec="watched"  onclick="setSection('watched',this)">✓ Watched <span class="npill" id="np-watched">0</span></button>
   </nav>
 
   <div class="filter-row">
-    <div class="filter-tabs" id="filterTabs"><button class="ftab active" data-f="all" onclick="setFilter('all',this)">All <span class="fpill" id="fp-all">4</span></button><button class="ftab" data-f="youtube" onclick="setFilter('youtube',this)">
-      <div class="sdot" style="background:var(--c-yt);width:7px;height:7px;border-radius:50%"></div>
-      YT <span class="fpill" id="fp-youtube">3</span>
-    </button><button class="ftab" data-f="vimeo" onclick="setFilter('vimeo',this)">
-      <div class="sdot" style="background:var(--c-vi);width:7px;height:7px;border-radius:50%"></div>
-      Vi <span class="fpill" id="fp-vimeo">1</span>
-    </button><button class="ftab" data-f="instagram" onclick="setFilter('instagram',this)">
-      <div class="sdot" style="background:var(--c-ig);width:7px;height:7px;border-radius:50%"></div>
-      IG <span class="fpill" id="fp-instagram">0</span>
-    </button><button class="ftab" data-f="tiktok" onclick="setFilter('tiktok',this)">
-      <div class="sdot" style="background:var(--c-tt);width:7px;height:7px;border-radius:50%"></div>
-      TT <span class="fpill" id="fp-tiktok">0</span>
-    </button><button class="ftab" data-f="twitter" onclick="setFilter('twitter',this)">
-      <div class="sdot" style="background:var(--c-tw);width:7px;height:7px;border-radius:50%"></div>
-      X <span class="fpill" id="fp-twitter">0</span>
-    </button><button class="ftab" data-f="reddit" onclick="setFilter('reddit',this)">
-      <div class="sdot" style="background:var(--c-rd);width:7px;height:7px;border-radius:50%"></div>
-      RD <span class="fpill" id="fp-reddit">0</span>
-    </button><button class="ftab" data-f="twitch" onclick="setFilter('twitch',this)">
-      <div class="sdot" style="background:var(--c-tv);width:7px;height:7px;border-radius:50%"></div>
-      TV <span class="fpill" id="fp-twitch">0</span>
-    </button><button class="ftab" data-f="spotify" onclick="setFilter('spotify',this)">
-      <div class="sdot" style="background:var(--c-sp);width:7px;height:7px;border-radius:50%"></div>
-      SP <span class="fpill" id="fp-spotify">0</span>
-    </button><button class="ftab" data-f="facebook" onclick="setFilter('facebook',this)">
-      <div class="sdot" style="background:var(--c-fb);width:7px;height:7px;border-radius:50%"></div>
-      FB <span class="fpill" id="fp-facebook">0</span>
-    </button></div>
+    <div class="filter-tabs" id="filterTabs"></div>
     <div class="right-ctrl">
       <div class="search-wrap" id="searchWrap">
         <svg class="search-ico" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-          <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"></circle>
-          <path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path>
+          <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
         </svg>
         <input class="search-input" id="searchInput" placeholder="Search title, channel, sender…" oninput="onSearchInput()" aria-label="Search videos">
         <button class="search-clear" id="searchClear" onclick="clearSearch()" aria-label="Clear search" tabindex="-1">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         </button>
       </div>
       <div class="sort-grp" role="group" aria-label="Sort order">
@@ -736,88 +908,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
     </div>
   </div>
 
-  <div class="grid" id="grid"><div class="date-group-header">Earlier <span style="color:var(--muted);font-weight:500">3</span></div><article class="card " data-uid="1" tabindex="0" style="animation-delay:0s" aria-label="PSY – GANGNAM STYLE">
-    <div class="thumb-wrap">
-      <img src="https://img.youtube.com/vi/9bZkp7q19f0/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.thumb-fallback').style.display='grid'">
-      <div class="thumb-fallback" style="display:none;color:var(--c-yt)">YT</div>
-      <div class="play-overlay"><div class="play-circle"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 4l8 4-8 4V4z" fill="#0d0d0f"></path></svg></div></div>
-      <div class="src-badge"><div class="sdot" style="background:var(--c-yt)"></div>YT</div>
-      <div class="saved-ribbon"><svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><path d="M4 1l.9 1.8 2 .3-1.45 1.4.35 2L4 5.6 2.2 6.5l.35-2L1.1 3.1l2-.3z"></path></svg>Saved</div>
-    </div>
-    <div class="card-body">
-      
-      <div class="card-title">PSY – GANGNAM STYLE</div>
-      <div class="card-meta">
-        <div class="channel-name">officialpsy</div>
-        <div class="card-actions" data-noopen="">
-          <button class="abtn starred" data-act="save" data-uid="1" aria-label="Unsave" title="Unsave">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><path d="M6.5 1.5l1.3 2.7 3 .43-2.18 2.13.52 3L6.5 8.27 3.86 9.76l.52-3L2.2 4.63l3-.43z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path></svg>
-          </button>
-          <button class="abtn linked" data-act="share" data-uid="1" aria-label="Share" title="Share">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><circle cx="10" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><circle cx="3" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><path d="M4.4 5.7L8.6 3.3M4.4 7.3l4.2 2.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"></path></svg>
-          </button>
-          
-          <button class="abtn del" data-act="del" data-uid="1" aria-label="Delete" title="Delete">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 4h9M5 4V3h3v1M3.5 4l.8 6.5h4.4L9.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </article><article class="card " data-uid="3" tabindex="0" style="animation-delay:0.033s" aria-label="The Secret Number — Award Winning Short Film">
-    <div class="thumb-wrap">
-      <img src="https://vumbnail.com/148751763.jpg" alt="" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.thumb-fallback').style.display='grid'">
-      <div class="thumb-fallback" style="display:none;color:var(--c-vi)">Vi</div>
-      <div class="play-overlay"><div class="play-circle"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 4l8 4-8 4V4z" fill="#0d0d0f"></path></svg></div></div>
-      <div class="src-badge"><div class="sdot" style="background:var(--c-vi)"></div>Vi</div>
-      <div class="new-badge">New</div>
-    </div>
-    <div class="card-body">
-      
-      <div class="card-title">The Secret Number — Award Winning Short Film</div>
-      <div class="card-meta">
-        <div class="channel-name">Vimeo Staff Picks</div>
-        <div class="card-actions" data-noopen="">
-          <button class="abtn " data-act="save" data-uid="3" aria-label="Save" title="Save">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5l1.3 2.7 3 .43-2.18 2.13.52 3L6.5 8.27 3.86 9.76l.52-3L2.2 4.63l3-.43z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path></svg>
-          </button>
-          <button class="abtn " data-act="share" data-uid="3" aria-label="Share" title="Share">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><circle cx="10" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><circle cx="3" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><path d="M4.4 5.7L8.6 3.3M4.4 7.3l4.2 2.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"></path></svg>
-          </button>
-          
-          <button class="abtn del" data-act="del" data-uid="3" aria-label="Delete" title="Delete">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 4h9M5 4V3h3v1M3.5 4l.8 6.5h4.4L9.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </article><article class="card " data-uid="4" tabindex="0" style="animation-delay:0.066s" aria-label="Rick Astley – Never Gonna Give You Up (embedding disabled — tests fallback)">
-    <div class="thumb-wrap">
-      <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg" alt="" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.thumb-fallback').style.display='grid'">
-      <div class="thumb-fallback" style="display:none;color:var(--c-yt)">YT</div>
-      <div class="play-overlay"><div class="play-circle"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 4l8 4-8 4V4z" fill="#0d0d0f"></path></svg></div></div>
-      <div class="src-badge"><div class="sdot" style="background:var(--c-yt)"></div>YT</div>
-      <div class="new-badge">New</div><div class="from-ribbon">🎭 from Demo Friend</div>
-    </div>
-    <div class="card-body">
-      
-      <div class="card-title">Rick Astley – Never Gonna Give You Up (embedding disabled — tests fallback)</div>
-      <div class="card-meta">
-        <div class="channel-name">Rick Astley</div>
-        <div class="card-actions" data-noopen="">
-          <button class="abtn " data-act="save" data-uid="4" aria-label="Save" title="Save">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5l1.3 2.7 3 .43-2.18 2.13.52 3L6.5 8.27 3.86 9.76l.52-3L2.2 4.63l3-.43z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path></svg>
-          </button>
-          <button class="abtn " data-act="share" data-uid="4" aria-label="Share" title="Share">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><circle cx="10" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><circle cx="3" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle><path d="M4.4 5.7L8.6 3.3M4.4 7.3l4.2 2.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"></path></svg>
-          </button>
-          
-          <button class="abtn del" data-act="del" data-uid="4" aria-label="Delete" title="Delete">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 4h9M5 4V3h3v1M3.5 4l.8 6.5h4.4L9.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </article></div>
+  <div class="grid" id="grid"></div>
 </div>
 
 <!-- ══ BOTTOM NAV (mobile) ══ -->
@@ -825,22 +916,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
   <div class="bottom-nav-row">
     <button class="bn-tab active" data-sec="feed" onclick="setSectionMobile('feed',this)">
       <span class="bn-ico">▶</span><span class="bn-label">Feed</span>
-      <span class="bn-pill" id="bn-feed">3</span>
+      <span class="bn-pill" id="bn-feed">0</span>
     </button>
     <button class="bn-tab" data-sec="saved" onclick="setSectionMobile('saved',this)">
       <span class="bn-ico">♥</span><span class="bn-label">Saved</span>
-      <span class="bn-pill" id="bn-saved">1</span>
+      <span class="bn-pill" id="bn-saved">0</span>
     </button>
     <button class="bn-tab" data-sec="received" onclick="setSectionMobile('received',this)">
       <span class="bn-ico">📨</span><span class="bn-label">Inbox</span>
-      <span class="bn-pill" id="bn-received">1</span>
+      <span class="bn-pill" id="bn-received">0</span>
     </button>
     <button class="bn-tab" data-sec="watched" onclick="setSectionMobile('watched',this)">
       <span class="bn-ico">✓</span><span class="bn-label">Watched</span>
-      <span class="bn-pill" id="bn-watched">1</span>
+      <span class="bn-pill" id="bn-watched">0</span>
     </button>
     <button class="bn-tab" onclick="openSettings()">
-      <span class="bn-ico" id="bn-profile-ico">🤩</span><span class="bn-label">Profile</span>
+      <span class="bn-ico" id="bn-profile-ico">😎</span><span class="bn-label">Profile</span>
     </button>
   </div>
 </nav>
@@ -856,7 +947,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
       </div>
       <button class="ss-close-x" onclick="closeShareSheet()" aria-label="Close share sheet">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
         </svg>
       </button>
     </div>
@@ -868,14 +959,14 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
     <div class="ss-footer">
       <button class="ss-action-btn" id="ss-native-share" onclick="ssNativeShare()" style="display:none">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <path d="M6.5 1v8M3.5 4l3-3 3 3M2 9v2.5h9V9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M6.5 1v8M3.5 4l3-3 3 3M2 9v2.5h9V9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         More apps
       </button>
       <button class="ss-action-btn" onclick="ssCopyLink()">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <rect x="4" y="4" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.2"></rect>
-          <path d="M8 4V2.5A1.5 1.5 0 006.5 1H2.5A1.5 1.5 0 001 2.5v4A1.5 1.5 0 002.5 8H4" stroke="currentColor" stroke-width="1.2"></path>
+          <rect x="4" y="4" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M8 4V2.5A1.5 1.5 0 006.5 1H2.5A1.5 1.5 0 001 2.5v4A1.5 1.5 0 002.5 8H4" stroke="currentColor" stroke-width="1.2"/>
         </svg>
         Copy link
       </button>
@@ -888,34 +979,41 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
   <div class="modal">
     <div class="modal-header">
       <div class="modal-info">
-        <div class="modal-title" id="m-title">—</div>
+        <div class="modal-title"   id="m-title">—</div>
         <div class="modal-channel" id="m-channel">—</div>
       </div>
       <div class="modal-acts">
+        <button class="mabtn" onclick="modalSwitchToReel()" aria-label="Reel mode" title="Switch to reel mode">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <rect x="2" y="1.5" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5.5 4.5l3 2-3 2v-4z" fill="currentColor"/>
+          </svg>
+          <span>Reel</span>
+        </button>
         <button class="mabtn" id="m-save" onclick="modalSave()" aria-label="Save">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-            <path d="M6.5 1.5l1.3 2.7 3 .43-2.18 2.13.52 3L6.5 8.27 3.86 9.76l.52-3L2.2 4.63l3-.43z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path>
+            <path d="M6.5 1.5l1.3 2.7 3 .43-2.18 2.13.52 3L6.5 8.27 3.86 9.76l.52-3L2.2 4.63l3-.43z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
           </svg>
           <span id="m-save-lbl">Save</span>
         </button>
         <button class="mabtn" onclick="openShareSheetForModal()" aria-label="Share">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-            <circle cx="10" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle>
-            <circle cx="10" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle>
-            <circle cx="3" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.1"></circle>
-            <path d="M4.4 5.7L8.6 3.3M4.4 7.3l4.2 2.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"></path>
+            <circle cx="10" cy="2.5" r="1.5" stroke="currentColor" stroke-width="1.1"/>
+            <circle cx="10" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.1"/>
+            <circle cx="3" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.1"/>
+            <path d="M4.4 5.7L8.6 3.3M4.4 7.3l4.2 2.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
           </svg>
           <span>Share</span>
         </button>
         <button class="mabtn" onclick="modalOpenExternal()" aria-label="Open original">
           <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-            <path d="M7 1h4v4M11 1L5.5 6.5M4 2H2v8h8V8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M7 1h4v4M11 1L5.5 6.5M4 2H2v8h8V8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <span>Open</span>
         </button>
         <button class="close-btn" onclick="closeModal()" aria-label="Close player">
           <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-            <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+            <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
           </svg>
         </button>
       </div>
@@ -931,7 +1029,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
       <div class="sp-title">Settings</div>
       <button class="close-btn" onclick="closeSettings()" aria-label="Close settings">
         <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
         </svg>
       </button>
     </div>
@@ -946,7 +1044,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
         <div class="sp-field">
           <label for="sp-phone">Your WhatsApp number <span style="color:var(--muted);font-weight:400">(optional but recommended)</span></label>
           <input class="sp-input" id="sp-phone" placeholder="e.g. 919876543210" type="tel" inputmode="tel">
-          <div class="sp-help">Lets friends share videos back to you with one tap. Stored only on your device &amp; embedded in share links.</div>
+          <div class="sp-help">Lets friends share videos back to you with one tap. Stored only on your device & embedded in share links.</div>
         </div>
       </div>
       <div class="sp-section">
@@ -969,6 +1067,24 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
       </div>
     </div>
   </div>
+</div>
+
+<!-- ══ REEL MODE OVERLAY ══ -->
+<div class="reel-overlay" id="reelOverlay" role="dialog" aria-label="Reel mode video viewer" aria-modal="true">
+  <div class="reel-topbar">
+    <button class="reel-close" onclick="closeReelMode()" aria-label="Exit reel mode">
+      <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div class="reel-progress" id="reelProgress"></div>
+    <div class="reel-progress-count" id="reelCount">0 / 0</div>
+  </div>
+  <button class="reel-nav-arrow up hidden" id="reelNavUp" onclick="reelGoTo(reelIndex-1)" aria-label="Previous">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 10l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <button class="reel-nav-arrow down" id="reelNavDown" onclick="reelGoTo(reelIndex+1)" aria-label="Next">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div class="reel-scroller" id="reelScroller"></div>
 </div>
 
 <!-- ══ TOAST ══ -->
@@ -2242,6 +2358,315 @@ function closeModal() {
   currentUid = null;
 }
 
+function modalSwitchToReel() {
+  const uid = currentUid;
+  closeModal();
+  setTimeout(() => openReelMode(uid), 220);
+}
+
+/* ══════════════════════════════════════════════════════
+   REEL MODE — scroll-snap fullscreen viewer
+══════════════════════════════════════════════════════ */
+let reelList     = [];           // array of video objects in current reel queue
+let reelIndex    = 0;            // index of currently visible reel
+let reelObserver = null;         // IntersectionObserver
+let reelWatchTimers = {};        // uid -> timeout for mark-watched
+let reelOpen     = false;
+
+function getCurrentFilteredList() {
+  // Replicates the current view's filtering so reel mode walks the same set
+  let list;
+  if      (activeSection === 'feed')    list = videos.filter(v => !v.watched);
+  else if (activeSection === 'saved')   list = videos.filter(v => v.saved);
+  else if (activeSection === 'shared')  list = videos.filter(v => v.shared);
+  else if (activeSection === 'watched') list = videos.filter(v => v.watched);
+  else if (activeSection === 'received')list = videos.filter(v => v.receivedFrom);
+  else                                   list = [...videos];
+
+  if (activeFilter !== 'all') list = list.filter(v => v.type === activeFilter);
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (q) list = list.filter(v => matchesSearch(v, q));
+  if (sortOrder === 'oldest') list = [...list].reverse();
+  return list;
+}
+
+function openReelMode(startUid) {
+  const list = getCurrentFilteredList();
+  if (!list.length) { toast('No videos to play in this view', 'info'); return; }
+
+  reelList = list;
+  reelIndex = 0;
+  if (startUid != null) {
+    const idx = reelList.findIndex(v => v.uid === startUid);
+    if (idx >= 0) reelIndex = idx;
+  }
+
+  renderReelSlides();
+  document.getElementById('reelOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  reelOpen = true;
+
+  // Jump to starting slide (no smooth-scroll on initial open)
+  requestAnimationFrame(() => {
+    const scroller = document.getElementById('reelScroller');
+    const slide = scroller.children[reelIndex];
+    if (slide) scroller.scrollTop = slide.offsetTop;
+    setupReelObserver();
+    updateReelProgress();
+  });
+}
+
+function closeReelMode() {
+  if (!reelOpen) return;
+  reelOpen = false;
+  document.getElementById('reelOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  if (reelObserver) { reelObserver.disconnect(); reelObserver = null; }
+  Object.values(reelWatchTimers).forEach(clearTimeout);
+  reelWatchTimers = {};
+  // Unmount all iframes (stop playback)
+  setTimeout(() => {
+    document.getElementById('reelScroller').innerHTML = '';
+    reelList = [];
+  }, 250);
+}
+
+function renderReelSlides() {
+  const scroller = document.getElementById('reelScroller');
+  scroller.innerHTML = reelList.map((v, i) => {
+    const provider = PROVIDERS[v.type] || {};
+    const blur = v.thumb ? `style="background-image:url('${esc(v.thumb)}')"` : '';
+    const fromBadge = v.receivedFrom
+      ? `<span class="reel-from">${esc(v.receivedFromAvatar||'😎')} ${esc(v.receivedFrom)}</span>`
+      : '';
+    const noteHtml = v.receivedNote
+      ? `<div class="reel-note">💬 ${esc(v.receivedNote)}</div>` : '';
+    return `
+    <div class="reel-slide" data-idx="${i}" data-uid="${v.uid}">
+      <div class="reel-player" data-mount-slot></div>
+      <div class="reel-placeholder" ${blur}>
+        <div class="reel-placeholder-play">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+      <div class="reel-info">
+        <div class="reel-src-row">
+          <span class="reel-src-badge" style="background:${provider.color||'#444'}">${provider.short || v.type}</span>
+          ${fromBadge}
+        </div>
+        <div class="reel-title">${esc(v.title)}</div>
+        <div class="reel-channel">${esc(v.channel||'')}</div>
+        ${noteHtml}
+      </div>
+      <div class="reel-actions">
+        <div class="reel-action-wrap">
+          <button class="reel-action ${v.saved?'on':''}" data-reel-act="save" data-uid="${v.uid}" aria-label="${v.saved?'Unsave':'Save'}">
+            <svg width="18" height="18" viewBox="0 0 14 14" fill="${v.saved?'currentColor':'none'}"><path d="M7 1.5l1.5 3 3.3.5-2.4 2.3.6 3.3L7 9.1 3.9 10.6l.6-3.3L2.1 5l3.3-.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="reel-action-label">${v.saved?'Saved':'Save'}</div>
+        </div>
+        <div class="reel-action-wrap">
+          <button class="reel-action" data-reel-act="share" data-uid="${v.uid}" aria-label="Share">
+            <svg width="17" height="17" viewBox="0 0 14 14" fill="none"><circle cx="11" cy="3" r="1.8" stroke="currentColor" stroke-width="1.3"/><circle cx="11" cy="11" r="1.8" stroke="currentColor" stroke-width="1.3"/><circle cx="3" cy="7" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M4.7 6.2L9.3 3.8M4.7 7.8l4.6 2.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+          <div class="reel-action-label">Share</div>
+        </div>
+        <div class="reel-action-wrap">
+          <button class="reel-action" data-reel-act="open" data-uid="${v.uid}" aria-label="Open original">
+            <svg width="16" height="16" viewBox="0 0 12 12" fill="none"><path d="M7 1h4v4M11 1L5.5 6.5M4 2H2v8h8V8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="reel-action-label">Open</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Wire up action buttons via delegation
+  scroller.addEventListener('click', reelActionHandler);
+
+  // Tap on placeholder to mount/play (mainly for embeds that don't autoplay)
+  scroller.addEventListener('click', e => {
+    const ph = e.target.closest('.reel-placeholder');
+    if (!ph) return;
+    const slide = ph.closest('.reel-slide');
+    if (slide) mountReelSlide(slide);
+  });
+
+  // First-time hint
+  if (!localStorage.getItem('vc_reel_hint_seen') && reelList.length > 1) {
+    const hint = document.createElement('div');
+    hint.className = 'reel-hint';
+    hint.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Swipe up for next`;
+    document.getElementById('reelOverlay').appendChild(hint);
+    setTimeout(() => hint.remove(), 3500);
+    localStorage.setItem('vc_reel_hint_seen', '1');
+  }
+}
+
+function reelActionHandler(e) {
+  const btn = e.target.closest('[data-reel-act]');
+  if (!btn) return;
+  e.stopPropagation();
+  const act = btn.dataset.reelAct;
+  const uid = parseInt(btn.dataset.uid);
+  const v = find(uid); if (!v) return;
+  if (act === 'save') {
+    v.saved = !v.saved;
+    saveVideos();
+    renderGrid();
+    // update this slide's button visually
+    btn.classList.toggle('on', v.saved);
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 14 14" fill="${v.saved?'currentColor':'none'}"><path d="M7 1.5l1.5 3 3.3.5-2.4 2.3.6 3.3L7 9.1 3.9 10.6l.6-3.3L2.1 5l3.3-.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
+    const lbl = btn.parentElement.querySelector('.reel-action-label');
+    if (lbl) lbl.textContent = v.saved ? 'Saved' : 'Save';
+    toast(v.saved ? '♥ Saved!' : 'Removed from saved', v.saved ? 'success' : 'info');
+  } else if (act === 'share') {
+    openShareSheet(uid, e);
+  } else if (act === 'open') {
+    window.open(v.url || v.originalUrl, '_blank');
+  }
+}
+
+function setupReelObserver() {
+  const scroller = document.getElementById('reelScroller');
+  if (reelObserver) reelObserver.disconnect();
+  reelObserver = new IntersectionObserver((entries) => {
+    // Find the slide with highest intersection ratio
+    let best = null;
+    entries.forEach(entry => {
+      const slide = entry.target;
+      const ratio = entry.intersectionRatio;
+      if (ratio >= 0.6) {
+        if (!best || ratio > best.ratio) best = { slide, ratio };
+      } else if (ratio < 0.1) {
+        // Slide is mostly out of view → unmount iframe to stop playback
+        unmountReelSlide(slide);
+      }
+    });
+    if (best) {
+      const idx = parseInt(best.slide.dataset.idx);
+      if (idx !== reelIndex) {
+        reelIndex = idx;
+        updateReelProgress();
+      }
+      mountReelSlide(best.slide);
+
+      // Preload neighbour iframes? No — too costly. Wait for them to scroll in.
+      // But DO unmount slides that are >1 away
+      Array.from(scroller.children).forEach(s => {
+        const sIdx = parseInt(s.dataset.idx);
+        if (Math.abs(sIdx - idx) > 1) unmountReelSlide(s);
+      });
+    }
+  }, { root: scroller, threshold: [0, 0.1, 0.6, 0.9] });
+
+  Array.from(scroller.children).forEach(s => reelObserver.observe(s));
+}
+
+function mountReelSlide(slide) {
+  const slot = slide.querySelector('[data-mount-slot]');
+  if (!slot || slot.dataset.mounted === '1') return;
+  const uid = parseInt(slide.dataset.uid);
+  const v = find(uid); if (!v) return;
+  const provider = PROVIDERS[v.type];
+
+  // Provider class for sizing
+  slot.classList.remove('vertical','landscape','compact');
+  if (provider?.compact)      slot.classList.add('compact');
+  else if (provider?.vertical) slot.classList.add('vertical');
+  else                        slot.classList.add('landscape');
+
+  let html = '';
+  if (v.type === 'facebook') {
+    html = `<div class="reel-fallback">
+      <div class="reel-fallback-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/></svg></div>
+      <h3>Facebook video</h3>
+      <p>Facebook videos need to be watched on Facebook directly.</p>
+      <button class="reel-fallback-btn" onclick="window.open('${esc(v.originalUrl||v.url)}','_blank')">Open on Facebook →</button>
+    </div>`;
+  } else {
+    const eUrl = provider?.embed(v.id, v.originalUrl);
+    if (!eUrl) {
+      html = `<div class="reel-fallback">
+        <div class="reel-fallback-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/></svg></div>
+        <h3>Can't play here</h3>
+        <p>This video can't be embedded.</p>
+        <button class="reel-fallback-btn" onclick="window.open('${esc(v.url||v.originalUrl)}','_blank')">Open on ${esc(provider?.name||'site')} →</button>
+      </div>`;
+    } else {
+      html = `<iframe src="${esc(eUrl)}"
+        allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen"
+        allowfullscreen
+        sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-forms allow-popups-to-escape-sandbox"></iframe>`;
+    }
+  }
+
+  slot.innerHTML = html;
+  slot.dataset.mounted = '1';
+
+  // Hide the placeholder (poster) once iframe is mounted
+  const ph = slide.querySelector('.reel-placeholder');
+  if (ph) ph.style.display = 'none';
+
+  // Mark watched after 5s of being the active slide
+  clearTimeout(reelWatchTimers[uid]);
+  reelWatchTimers[uid] = setTimeout(() => {
+    const cv = find(uid);
+    if (cv && !cv.watched && reelOpen) {
+      cv.watched = true; cv.watchedAt = Date.now();
+      saveVideos();
+    }
+  }, 5000);
+}
+
+function unmountReelSlide(slide) {
+  const slot = slide.querySelector('[data-mount-slot]');
+  if (!slot || slot.dataset.mounted !== '1') return;
+  slot.innerHTML = '';
+  slot.dataset.mounted = '0';
+  const ph = slide.querySelector('.reel-placeholder');
+  if (ph) ph.style.display = '';
+  const uid = parseInt(slide.dataset.uid);
+  if (uid && reelWatchTimers[uid]) { clearTimeout(reelWatchTimers[uid]); delete reelWatchTimers[uid]; }
+}
+
+function reelGoTo(idx) {
+  if (idx < 0 || idx >= reelList.length) return;
+  const scroller = document.getElementById('reelScroller');
+  const slide = scroller.children[idx];
+  if (slide) slide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateReelProgress() {
+  const total = reelList.length;
+  document.getElementById('reelCount').textContent = `${reelIndex + 1} / ${total}`;
+  const wrap = document.getElementById('reelProgress');
+  // Cap dots at 12 visible for clarity
+  const maxDots = 12;
+  const dots = total <= maxDots ? total : maxDots;
+  let html = '';
+  if (total <= maxDots) {
+    for (let i = 0; i < total; i++) {
+      const cls = i === reelIndex ? 'active' : (i < reelIndex ? 'past' : '');
+      html += `<div class="reel-progress-dot ${cls}"></div>`;
+    }
+  } else {
+    // Compact: show position as a single growing bar
+    const pct = ((reelIndex + 1) / total) * 100;
+    html = `<div class="reel-progress-dot" style="flex:1;max-width:none;background:rgba(255,255,255,.18)">
+      <div style="height:100%;width:${pct}%;background:#fff;border-radius:2px;transition:width .3s"></div>
+    </div>`;
+    wrap.style.maxWidth = '180px';
+  }
+  wrap.innerHTML = html;
+
+  // Show/hide nav arrows
+  document.getElementById('reelNavUp').classList.toggle('hidden', reelIndex <= 0);
+  document.getElementById('reelNavDown').classList.toggle('hidden', reelIndex >= total - 1);
+}
+
+
+
 // YouTube embed error detection
 window.addEventListener('message', e => {
   try {
@@ -2775,6 +3200,15 @@ function toast(msg, type = 'success') {
    KEYBOARD SHORTCUTS
 ══════════════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
+  // Reel mode keyboard handling takes precedence when open
+  if (reelOpen) {
+    if (e.key === 'Escape')         { e.preventDefault(); closeReelMode(); return; }
+    if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); reelGoTo(reelIndex + 1); return; }
+    if (e.key === 'ArrowUp'   || e.key === 'k') { e.preventDefault(); reelGoTo(reelIndex - 1); return; }
+    if (e.key === ' ') { /* let space scroll naturally */ }
+    return;
+  }
+
   // Esc: clear search if focused; otherwise close modals
   if (e.key === 'Escape') {
     if (document.activeElement && document.activeElement.id === 'searchInput' && document.activeElement.value) {
@@ -2860,6 +3294,5 @@ window.addEventListener('storage', e => {
 boot();
 
 </script>
-
-
-</body></html>
+</body>
+</html>
